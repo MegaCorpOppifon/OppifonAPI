@@ -27,6 +27,7 @@ namespace OppifonAPI
         {
             var connectionString = "ConnectionString";
 
+
             services.AddDbContext<Context>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
 
