@@ -125,20 +125,15 @@ namespace OppifonAPI.Controllers
                         }
 
                         unit.Complete();
-                        var test = unit.Users.GetByEmail(dtoUser.Email);
-                        var userTags = unit.UserTags.GetAll();
-                        var tags = unit.Tags.GetAll();
                     }
 
-                    if (!userCreationResult.Succeeded)
-                    {
-                        foreach (var error in userCreationResult.Errors)
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        return BadRequest(ModelState);
-                    }
+                    if (userCreationResult.Succeeded)
+                        return Ok();
 
-                    //return Ok(newUser);
-                    
+                    foreach (var error in userCreationResult.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    return BadRequest(ModelState);
+
                 }
                 catch (Exception e)
                 {
@@ -146,16 +141,6 @@ namespace OppifonAPI.Controllers
                     throw;
                 }
             }
-
-            using (var unit = _factory.GetUOF())
-            {
-                var test = unit.Users.GetByEmail(dtoUser.Email);
-                var test2 = test.InterestTags;
-                var test3 = unit.UserTags.GetAll();
-                var test4 = unit.Tags.GetAll();
-            }
-
-            return Ok();
         }
 
         [HttpPost("login")]
