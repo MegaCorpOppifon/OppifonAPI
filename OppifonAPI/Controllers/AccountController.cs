@@ -76,6 +76,7 @@ namespace OppifonAPI.Controllers
                         }
 
                         unit.Complete();
+                        
 
                         if (dtoUser.IsExpert)
                         {
@@ -127,13 +128,12 @@ namespace OppifonAPI.Controllers
                     }
 
                     if (userCreationResult.Succeeded)
-                    {
-                        return Ok(newUser);
-                    }
+                        return Ok();
 
                     foreach (var error in userCreationResult.Errors)
                         ModelState.AddModelError(string.Empty, error.Description);
                     return BadRequest(ModelState);
+
                 }
                 catch (Exception e)
                 {

@@ -67,7 +67,7 @@ namespace OppifonAPI
            
             services.AddCors();
             services.AddMvc();
-            services.AddTransient<IFactory, Factory>();
+            services.AddSingleton<IFactory,Factory>();
 
             Factory.ConnectionString = Configuration.GetConnectionString(connectionString);
         }

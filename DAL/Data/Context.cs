@@ -1,7 +1,6 @@
 ﻿using DAL.Models;
 using DAL.Models.ManyToMany;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 
 namespace DAL.Data
 {
@@ -15,7 +14,7 @@ namespace DAL.Data
 
         private static DbContextOptions GetOptions(string connectionString)
         {
-            return SqlServerDbContextOptionsExtensions.UseSqlServer(new DbContextOptionsBuilder(), connectionString)
+            return new DbContextOptionsBuilder().UseSqlServer(connectionString)
                 .Options;
         } 
 

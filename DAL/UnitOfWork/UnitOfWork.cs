@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
 using DAL.Data;
-using DAL.Models;
 using DAL.Persistence;
 using DAL.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.UnitOfWork
@@ -13,7 +11,7 @@ namespace DAL.UnitOfWork
     {
         private readonly Context _context;
         
-        public UnitOfWork(Context context, IPasswordHasher<User> passwordHasher)
+        public UnitOfWork(Context context)
         {
             _context = context;
             Appointments = new AppointmentRepository(_context);
@@ -23,7 +21,7 @@ namespace DAL.UnitOfWork
             Experts = new ExpertRepository(_context);
             Reviews = new ReviewRepository(_context);
             Tags = new TagRepository(_context);
-            Users = new UserRepository(_context, passwordHasher);
+            Users = new UserRepository(_context);
             WorkDays = new WorkDayRepository(_context);
             CalendarAppointments = new CalendarAppointmentRepository(_context);
             UserTags = new UserTagRepository(_context);
