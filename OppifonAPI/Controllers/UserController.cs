@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,10 +34,26 @@ namespace OppifonAPI.Controllers
         {
             using (var unit = _factory.GetUOF())
             {
-                var user = unit.Users.Get(id);
-                var dtoUser = new DTORegisterUser();
-                Mapper.Map(user, dtoUser);
-                return Ok(dtoUser);
+                DTOUser user = new DTOUser();
+                var dbUser = unit.Users.GetEager(id);
+
+                user.Id = dbUser.Id;
+                user.FirstName = dbUser.FirstName;
+                user.LastName = dbUser.LastName;
+                user.Email = dbUser.Email;
+                user.City = dbUser.City;
+                user.PhoneNumber = dbUser.PhoneNumber;
+                user.Birthday = dbUser.Birthday;
+                user.Gender = dbUser.Gender;
+                user.IsExpert = dbUser.IsExpert;
+                user.InterestTags = new List<string>();
+
+                foreach (var interestTag in dbUser.InterestTags)
+                {
+                    user.InterestTags.Add(interestTag.Tag.Name);
+                }
+
+                return Ok(user);
             }
         }
 
