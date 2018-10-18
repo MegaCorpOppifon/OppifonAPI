@@ -22,7 +22,9 @@ namespace DAL.Persistence
             return OurContext.Users
                 .Where(x => x.Id == id)
                 .Include(x => x.InterestTags)
+                .ThenInclude(x => x.Tag)
                 .Include(x => x.Calendar)
+                .ThenInclude(y => y.Appointments)
                 .SingleOrDefault();
         }
 
