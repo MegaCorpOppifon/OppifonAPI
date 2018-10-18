@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using OppifonAPI.Helpers;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Internal;
 using OppifonAPI.DTO;
 
 namespace OppifonAPI.Controllers
