@@ -21,7 +21,15 @@ namespace DAL.Persistence
         {
            return OurContext.Users.FirstOrDefault(u => u.UserName == email);
         }
-        
+
+        public User GetEager(Guid id)
+        {
+            return OurContext.Users
+                .Where(x => x.Id == id)
+                .Include(x => x.InterestTags)
+                .SingleOrDefault();
+        }
+
         public void RemoveById(Guid id)
         {
             var user = OurContext.Users.SingleOrDefault(x => x.Id == id);
