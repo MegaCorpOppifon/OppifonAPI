@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
+using Calendar = DAL.Models.Calendar;
 
 namespace OppifonAPI.Controllers
 {
@@ -136,7 +138,7 @@ namespace OppifonAPI.Controllers
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
-                    throw e;
+                    throw;
                 }
             }
         }
@@ -152,7 +154,7 @@ namespace OppifonAPI.Controllers
             }
             var passwordSignInResult = await _signInManager.CheckPasswordSignInAsync(user, dtoUser.Password, false);
             if (passwordSignInResult.Succeeded)
-                return Ok(GenerateToken(dtoUser.Email));
+                return Ok(GenerateToken(user));
             return BadRequest("Invalid login");
         }
 
@@ -163,11 +165,17 @@ namespace OppifonAPI.Controllers
             return Ok();
         }
 
-        private JsonToken GenerateToken(string username)
+        private JsonToken GenerateToken(User user)
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, username),
+                new Claim("email", user.Email),
+                new Claim("name", user.FirstName + " " + user.LastName), 
+                new Claim("id", user.Id.ToString()), 
+                new Claim("city", user.City), 
+                new Claim("birthday", user.Birthday.ToString(CultureInfo.InvariantCulture)),
+                new Claim("gender", user.Gender), 
+                new Claim("isExpert", user.IsExpert.ToString()), 
                 new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()),
                 new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddDays(1)).ToUnixTimeSeconds().ToString()),
             };
