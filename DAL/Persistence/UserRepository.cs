@@ -17,6 +17,12 @@ namespace DAL.Persistence
            return OurContext.Users.FirstOrDefault(u => u.UserName == email);
         }
 
+        public User GetEagerByEmail(string email)
+        {
+            var user = OurContext.Users.FirstOrDefault(u => u.UserName == email);
+            return user == null ? null : GetEager(user.Id);
+        }
+
         public User GetEager(Guid id)
         {
             return OurContext.Users
