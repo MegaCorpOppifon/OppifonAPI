@@ -10,12 +10,8 @@ namespace DAL.Persistence
 {
     public class UserRepository : Repository<User>, IUserRepository
     {
-        private readonly IPasswordHasher<User> _passwordHasher;
-
-        public UserRepository(DbContext context, IPasswordHasher<User> passwordHasher) : base(context)
-        {
-            _passwordHasher = passwordHasher;
-        }
+        public UserRepository(DbContext context) : base(context)
+        {}
 
         public User GetByEmail(string email)
         {

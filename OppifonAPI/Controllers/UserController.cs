@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.Helpers;
@@ -42,13 +43,24 @@ namespace OppifonAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody]DTOUpdateUser dtoUser)
         {
+        
+            //try
+            //{
+            //    var dbUser = await _userManager.FindByIdAsync(id.ToString());
+            //    await _userManager.ChangePasswordAsync(dbUser, dtoUser.OldPassword, dtoUser.NewPassword);
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(new { message = ex.Message });
+            //}
+
             using (var unit = _factory.GetUOF())
             {
                 // map dto to entity and set id
                 try
                 {
                     var dbUser = unit.Users.Get(id);
-                    await _userManager.ChangePasswordAsync(dbUser, dtoUser.OldPassword, dtoUser.NewPassword);
+                    
                     dbUser.FirstName = dtoUser.FirstName ?? dbUser.FirstName;
                     dbUser.LastName = dtoUser.LastName ?? dbUser.LastName;
                     dbUser.Email = dtoUser.Email ?? dbUser.Email;
@@ -59,8 +71,9 @@ namespace OppifonAPI.Controllers
                     dbUser.IsExpert = dtoUser.IsExpert;
 
                     // Interest tags
-                    if (dtoUser.InterestTags.Any())
+                    if (EnumerableExtensions.Any(dtoUser.InterestTags))
                     {
+                        var test = dbUser.InterestTags.Count;
                         dbUser.InterestTags = new Collection<UserTag>();
                         foreach (var interestTag in dtoUser.InterestTags)
                         {
@@ -80,7 +93,7 @@ namespace OppifonAPI.Controllers
                     unit.Complete();
                     return Ok(dbUser);
                 }
-                catch (AppException ex)
+                catch (Exception ex)
                 {
                     // return error message if there was an exception
                     return BadRequest(new { message = ex.Message });
