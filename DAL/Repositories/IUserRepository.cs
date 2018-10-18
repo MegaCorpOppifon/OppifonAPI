@@ -6,6 +6,7 @@ namespace DAL.Repositories
     public interface IUserRepository : IRepository<User>
     {
         User GetByEmail(string email);
+        User GetEager(Guid id);
         void RemoveById(Guid id);
     }
 }
