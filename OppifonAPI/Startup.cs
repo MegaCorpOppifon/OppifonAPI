@@ -17,7 +17,7 @@ namespace OppifonAPI
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            Configuration = configuration;            
         }
 
         public IConfiguration Configuration { get; }
@@ -26,6 +26,7 @@ namespace OppifonAPI
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = "ConnectionString";
+            var secret = Configuration["JWT_SECRET"];
 
             services.AddDbContext<Context>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
@@ -57,7 +58,7 @@ namespace OppifonAPI
                     //ValidIssuer = "the isser you want to validate",
 
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the secret that needs to be at least 16 characters long for HmacSha256")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT_SECRET"])),
 
                     ValidateLifetime = true, //validate the expiration and not before values in the token
 
@@ -75,12 +76,9 @@ namespace OppifonAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
             app.UseCors(builder =>
                 builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+            
             app.UseAuthentication();
             app.UseMvc();
         

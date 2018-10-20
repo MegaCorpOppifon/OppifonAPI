@@ -11,6 +11,7 @@ using DAL.Models;
 using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -25,13 +26,15 @@ namespace OppifonAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IFactory _factory;
+        private readonly IConfiguration _configuration;
 
 
-        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
             _factory = factory;
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -199,10 +202,10 @@ namespace OppifonAPI.Controllers
                 new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()),
                 new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddDays(1)).ToUnixTimeSeconds().ToString()),
             };
-
+            
             var token = new JwtSecurityToken(
                 new JwtHeader(new SigningCredentials(
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the secret that needs to be at least 16 characters long for HmacSha256")),
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT_SECRET"])),
                     SecurityAlgorithms.HmacSha256)),
                 new JwtPayload(claims));
             var writtenToken = new JwtSecurityTokenHandler().WriteToken(token);
