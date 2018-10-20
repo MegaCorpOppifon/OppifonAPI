@@ -57,7 +57,7 @@ namespace OppifonAPI
                     //ValidIssuer = "the isser you want to validate",
 
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT_SECRET"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("AKSE5aYnyjEXs5eSQbYrHdaW6QEXWXGfxKfe9MxhPxyFpg2bghzFNAX7Wu4xrhExeZFBdm6Qzz85sDMWptWWJp7Jz6pwr9w2GTeP3MJer7M8kjKkzZWcdBGJ")),
 
                     ValidateLifetime = true, //validate the expiration and not before values in the token
 
