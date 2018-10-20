@@ -26,8 +26,7 @@ namespace OppifonAPI
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = "ConnectionString";
-            var secret = Configuration["JWT_SECRET"];
-
+            
             services.AddDbContext<Context>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString(connectionString)));
 
