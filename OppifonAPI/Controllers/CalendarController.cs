@@ -4,13 +4,14 @@ using System.Linq;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
 
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class CalendarController : ControllerBase
@@ -27,6 +28,11 @@ namespace OppifonAPI.Controllers
         [HttpGet("user/{id}")]
         public IActionResult GetCalendarUser(Guid id)
         {
+            var claims = User.Claims;
+            var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
+            if (isExpert != "True")
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 try

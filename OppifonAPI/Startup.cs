@@ -57,11 +57,11 @@ namespace OppifonAPI
                     //ValidIssuer = "the isser you want to validate",
 
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the secret that needs to be at least 16 characeters long for HmacSha256")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("the secret that needs to be at least 16 characters long for HmacSha256")),
 
                     ValidateLifetime = true, //validate the expiration and not before values in the token
 
-                    ClockSkew = TimeSpan.FromMinutes(5) //5 minute tolerance for the expiration date
+                    ClockSkew = TimeSpan.FromHours(5) //5 minute tolerance for the expiration date
                 };
             });
            
@@ -81,7 +81,7 @@ namespace OppifonAPI
             }
             app.UseCors(builder =>
                 builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
-
+            app.UseAuthentication();
             app.UseMvc();
         
         }
