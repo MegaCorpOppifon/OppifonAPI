@@ -19,6 +19,8 @@ namespace DAL.Persistence
             return OurContext.Calendars
                 .Where(x => x.UserId == id)
                 .Include(x => x.Appointments)
+                .ThenInclude(x => x.Appointment)
+                .ThenInclude(x => x.Participants)
                 .Include(x => x.DaysOff)
                 .Include(x => x.WorkDays)
                 .SingleOrDefault();
