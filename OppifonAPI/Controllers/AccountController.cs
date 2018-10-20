@@ -205,7 +205,7 @@ namespace OppifonAPI.Controllers
             
             var token = new JwtSecurityToken(
                 new JwtHeader(new SigningCredentials(
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes("AKSE5aYnyjEXs5eSQbYrHdaW6QEXWXGfxKfe9MxhPxyFpg2bghzFNAX7Wu4xrhExeZFBdm6Qzz85sDMWptWWJp7Jz6pwr9w2GTeP3MJer7M8kjKkzZWcdBGJ")),
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT_SECRET"])),
                     SecurityAlgorithms.HmacSha256)),
                 new JwtPayload(claims));
             var writtenToken = new JwtSecurityTokenHandler().WriteToken(token);
