@@ -42,21 +42,47 @@ namespace OppifonAPI.Controllers
                 try
                 {
                     // Add User
-                    var newUser = new User
+                    IdentityResult userCreationResult;
+                    if (dtoUser.IsExpert)
                     {
-                        UserName = dtoUser.Email,
-                        Email = dtoUser.Email,
-                        City = dtoUser.City,
-                        Birthday = dtoUser.Birthday,
-                        FirstName = dtoUser.FirstName,
-                        LastName = dtoUser.LastName,
-                        Gender = dtoUser.Gender,
-                        IsExpert = dtoUser.IsExpert,
-                        PhoneNumber = dtoUser.PhoneNumber,
-                        Calendar = new Calendar()
-                    };
-                    var userCreationResult = await _userManager.CreateAsync(newUser, dtoUser.Password);
-
+                        var newUser = new Expert
+                        {
+                            UserName = dtoUser.Email,
+                            Email = dtoUser.Email,
+                            City = dtoUser.City,
+                            Birthday = dtoUser.Birthday,
+                            FirstName = dtoUser.FirstName,
+                            LastName = dtoUser.LastName,
+                            Gender = dtoUser.Gender,
+                            IsExpert = dtoUser.IsExpert,
+                            PhoneNumber = dtoUser.PhoneNumber,
+                            Calendar = new Calendar(),
+                            Description = dtoUser.Description,
+                            ExpertTags = new List<ExpertTag>(),
+                            MainFields = new List<MainFieldTag>(),
+                            Reviews = new List<Review>()
+                        };
+                        userCreationResult = await _userManager.CreateAsync(newUser, dtoUser.Password);
+                    }
+                    else
+                    {
+                        var newUser = new User
+                        {
+                            UserName = dtoUser.Email,
+                            Email = dtoUser.Email,
+                            City = dtoUser.City,
+                            Birthday = dtoUser.Birthday,
+                            FirstName = dtoUser.FirstName,
+                            LastName = dtoUser.LastName,
+                            Gender = dtoUser.Gender,
+                            IsExpert = dtoUser.IsExpert,
+                            PhoneNumber = dtoUser.PhoneNumber,
+                            Calendar = new Calendar()
+                        };
+                        userCreationResult = await _userManager.CreateAsync(newUser, dtoUser.Password);
+                    }
+                    
+                   
                     // Add user tag
                     if (userCreationResult.Succeeded)
                     {
@@ -77,17 +103,11 @@ namespace OppifonAPI.Controllers
 
                         unit.Complete();
                         
-
                         if (dtoUser.IsExpert)
                         {
-                            var expert = new Expert
-                            {
-                                Description = dtoUser.Description,
-                                ExpertTags = new List<ExpertTag>(),
-                                MainFields = new List<MainFieldTag>(),
-                                Reviews = new List<Review>()
-                            };
-
+                            var dbExpert = unit.Experts.GetByEmail(dtoUser.Email);
+                            dbExpert.ExpertTags = new List<ExpertTag>();
+                            dbExpert.MainFields = new List<MainFieldTag>();
                             var category = unit.Categories.GetCategoryByName(dtoUser.ExpertCategory);
                             category.Tags = new List<Tag>();
 
@@ -99,11 +119,11 @@ namespace OppifonAPI.Controllers
 
                                 var newExpertTag = new ExpertTag
                                 {
-                                    Expert = expert,
+                                    Expert = dbExpert,
                                     Tag = tag
                                 };
 
-                                expert.ExpertTags.Add(newExpertTag);
+                                dbExpert.ExpertTags.Add(newExpertTag);
                             }
 
                             foreach (var expertTag in dtoUser.MainFields)
@@ -114,14 +134,14 @@ namespace OppifonAPI.Controllers
 
                                 var newMainField = new MainFieldTag()
                                 {
-                                    Expert = expert,
+                                    Expert = dbExpert,
                                     Tag = tag
                                 };
 
-                                expert.MainFields.Add(newMainField);
+                                dbExpert.MainFields.Add(newMainField);
                             }
 
-                            expert.ExpertCategory = category;
+                            dbExpert.ExpertCategory = category;
                         }
 
                         unit.Complete();
