@@ -7,8 +7,8 @@ namespace DAL.Models
 {
     public class Expert : User
     {
-        [Key]
-        public Guid Id { get; set; }
+        //[Key]
+        //public Guid Id { get; set; }
         public Category ExpertCategory { get; set; }
         public string Description { get; set; }
         public ICollection<ExpertTag> ExpertTags { get; set; }
