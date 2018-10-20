@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DAL.Migrations
 {
-    public partial class Init : Migration
+    public partial class NewInit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -23,18 +23,6 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Calenders",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(nullable: false),
-                    DefaultDuration = table.Column<TimeSpan>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Calenders", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
@@ -47,44 +35,20 @@ namespace DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CalenderAppointments",
-                columns: table => new
-                {
-                    CalenderId = table.Column<Guid>(nullable: false),
-                    AppointmentId = table.Column<Guid>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CalenderAppointments", x => new { x.CalenderId, x.AppointmentId });
-                    table.ForeignKey(
-                        name: "FK_CalenderAppointments_Appointments_CalenderId",
-                        column: x => x.CalenderId,
-                        principalTable: "Appointments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CalenderAppointments_Calenders_CalenderId",
-                        column: x => x.CalenderId,
-                        principalTable: "Calenders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DaysOff",
+                name: "Tags",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    OffDay = table.Column<DateTime>(nullable: false),
-                    CalenderId = table.Column<Guid>(nullable: true)
+                    Name = table.Column<string>(nullable: true),
+                    CategoryId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DaysOff", x => x.Id);
+                    table.PrimaryKey("PK_Tags", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DaysOff_Calenders_CalenderId",
-                        column: x => x.CalenderId,
-                        principalTable: "Calenders",
+                        name: "FK_Tags_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -113,84 +77,94 @@ namespace DAL.Migrations
                     City = table.Column<string>(nullable: true),
                     Birthday = table.Column<DateTime>(nullable: false),
                     Gender = table.Column<string>(nullable: true),
-                    CalenderId = table.Column<Guid>(nullable: true),
                     IsExpert = table.Column<bool>(nullable: false),
-                    AppointmentId = table.Column<Guid>(nullable: true)
+                    AppointmentId = table.Column<Guid>(nullable: true),
+                    Discriminator = table.Column<string>(nullable: false),
+                    ExpertCategoryId = table.Column<Guid>(nullable: true),
+                    Description = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Categories_ExpertCategoryId",
+                        column: x => x.ExpertCategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Users_Appointments_AppointmentId",
                         column: x => x.AppointmentId,
                         principalTable: "Appointments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Users_Calenders_CalenderId",
-                        column: x => x.CalenderId,
-                        principalTable: "Calenders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "WorkDays",
+                name: "Calendars",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    StartHour = table.Column<DateTime>(nullable: false),
-                    EndHour = table.Column<DateTime>(nullable: false),
-                    DayOfWeek = table.Column<int>(nullable: false),
-                    CalenderId = table.Column<Guid>(nullable: true)
+                    DefaultDuration = table.Column<TimeSpan>(nullable: false),
+                    UserId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WorkDays", x => x.Id);
+                    table.PrimaryKey("PK_Calendars", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkDays_Calenders_CalenderId",
-                        column: x => x.CalenderId,
-                        principalTable: "Calenders",
+                        name: "FK_Calendars_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Experts",
+                name: "ExpertTags",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    ExpertCategoryId = table.Column<Guid>(nullable: true),
-                    Description = table.Column<string>(nullable: true)
+                    ExpertId = table.Column<Guid>(nullable: false),
+                    TagId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Experts", x => x.Id);
+                    table.PrimaryKey("PK_ExpertTags", x => new { x.ExpertId, x.TagId });
                     table.ForeignKey(
-                        name: "FK_Experts_Categories_ExpertCategoryId",
-                        column: x => x.ExpertCategoryId,
-                        principalTable: "Categories",
+                        name: "FK_ExpertTags_Users_ExpertId",
+                        column: x => x.ExpertId,
+                        principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ExpertTags_Tags_TagId",
+                        column: x => x.TagId,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tags",
+                name: "MainFieldTags",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    Name = table.Column<string>(nullable: true),
-                    CategoryId = table.Column<Guid>(nullable: true)
+                    ExpertId = table.Column<Guid>(nullable: false),
+                    TagId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
+                    table.PrimaryKey("PK_MainFieldTags", x => new { x.ExpertId, x.TagId });
                     table.ForeignKey(
-                        name: "FK_Tags_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
+                        name: "FK_MainFieldTags_Users_ExpertId",
+                        column: x => x.ExpertId,
+                        principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MainFieldTags_Tags_TagId",
+                        column: x => x.TagId,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -208,47 +182,9 @@ namespace DAL.Migrations
                 {
                     table.PrimaryKey("PK_Reviews", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Reviews_Experts_ExpertId",
+                        name: "FK_Reviews_Users_ExpertId",
                         column: x => x.ExpertId,
-                        principalTable: "Experts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ExpertTags",
-                columns: table => new
-                {
-                    ExpertId = table.Column<Guid>(nullable: false),
-                    TagId = table.Column<Guid>(nullable: false),
-                    ExpertId1 = table.Column<Guid>(nullable: true),
-                    TagId1 = table.Column<Guid>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ExpertTags", x => new { x.ExpertId, x.TagId });
-                    table.ForeignKey(
-                        name: "FK_ExpertTags_Experts_ExpertId",
-                        column: x => x.ExpertId,
-                        principalTable: "Experts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ExpertTags_Experts_ExpertId1",
-                        column: x => x.ExpertId1,
-                        principalTable: "Experts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_ExpertTags_Tags_TagId",
-                        column: x => x.TagId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ExpertTags_Tags_TagId1",
-                        column: x => x.TagId1,
-                        principalTable: "Tags",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -277,20 +213,80 @@ namespace DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "CalendarAppointments",
+                columns: table => new
+                {
+                    CalendarId = table.Column<Guid>(nullable: false),
+                    AppointmentId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CalendarAppointments", x => new { x.CalendarId, x.AppointmentId });
+                    table.ForeignKey(
+                        name: "FK_CalendarAppointments_Appointments_CalendarId",
+                        column: x => x.CalendarId,
+                        principalTable: "Appointments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CalendarAppointments_Calendars_CalendarId",
+                        column: x => x.CalendarId,
+                        principalTable: "Calendars",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DaysOff",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    OffDay = table.Column<DateTime>(nullable: false),
+                    CalendarId = table.Column<Guid>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DaysOff", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DaysOff_Calendars_CalendarId",
+                        column: x => x.CalendarId,
+                        principalTable: "Calendars",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkDays",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    StartHour = table.Column<DateTime>(nullable: false),
+                    EndHour = table.Column<DateTime>(nullable: false),
+                    DayOfWeek = table.Column<int>(nullable: false),
+                    CalendarId = table.Column<Guid>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkDays", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkDays_Calendars_CalendarId",
+                        column: x => x.CalendarId,
+                        principalTable: "Calendars",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "IX_DaysOff_CalenderId",
+                name: "IX_Calendars_UserId",
+                table: "Calendars",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DaysOff_CalendarId",
                 table: "DaysOff",
-                column: "CalenderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Experts_ExpertCategoryId",
-                table: "Experts",
-                column: "ExpertCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ExpertTags_ExpertId1",
-                table: "ExpertTags",
-                column: "ExpertId1");
+                column: "CalendarId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ExpertTags_TagId",
@@ -298,9 +294,9 @@ namespace DAL.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExpertTags_TagId1",
-                table: "ExpertTags",
-                column: "TagId1");
+                name: "IX_MainFieldTags_TagId",
+                table: "MainFieldTags",
+                column: "TagId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_ExpertId",
@@ -313,14 +309,14 @@ namespace DAL.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Users_ExpertCategoryId",
+                table: "Users",
+                column: "ExpertCategoryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_AppointmentId",
                 table: "Users",
                 column: "AppointmentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_CalenderId",
-                table: "Users",
-                column: "CalenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserTags_TagId",
@@ -328,21 +324,24 @@ namespace DAL.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkDays_CalenderId",
+                name: "IX_WorkDays_CalendarId",
                 table: "WorkDays",
-                column: "CalenderId");
+                column: "CalendarId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CalenderAppointments");
+                name: "CalendarAppointments");
 
             migrationBuilder.DropTable(
                 name: "DaysOff");
 
             migrationBuilder.DropTable(
                 name: "ExpertTags");
+
+            migrationBuilder.DropTable(
+                name: "MainFieldTags");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -354,10 +353,10 @@ namespace DAL.Migrations
                 name: "WorkDays");
 
             migrationBuilder.DropTable(
-                name: "Experts");
+                name: "Tags");
 
             migrationBuilder.DropTable(
-                name: "Tags");
+                name: "Calendars");
 
             migrationBuilder.DropTable(
                 name: "Users");
@@ -367,9 +366,6 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Appointments");
-
-            migrationBuilder.DropTable(
-                name: "Calenders");
         }
     }
 }

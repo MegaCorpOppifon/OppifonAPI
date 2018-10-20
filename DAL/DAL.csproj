@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <Compile Remove="Migrations\20181018175937_NoManyToManyDbSets.cs" />
+    <Compile Remove="Migrations\20181020142303_OneToOneRelationShipUserAndCalendar.cs" />
+    <Compile Remove="Migrations\20181020142615_OneToOneRelationshipUserCalendar.cs" />
+    <Compile Remove="Migrations\20181020142833_OneToOneRelationshipUserCalendar.cs" />
   </ItemGroup>
 
   <ItemGroup>
