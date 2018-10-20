@@ -44,7 +44,12 @@ namespace DAL.Migrations
 
                     b.Property<TimeSpan>("DefaultDuration");
 
+                    b.Property<Guid>("UserId");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Calendars");
                 });
@@ -84,6 +89,8 @@ namespace DAL.Migrations
                     b.Property<Guid>("AppointmentId");
 
                     b.HasKey("CalendarId", "AppointmentId");
+
+                    b.HasIndex("AppointmentId");
 
                     b.ToTable("CalendarAppointments");
                 });
@@ -176,8 +183,6 @@ namespace DAL.Migrations
 
                     b.Property<DateTime>("Birthday");
 
-                    b.Property<Guid?>("CalendarId");
-
                     b.Property<string>("City");
 
                     b.Property<string>("ConcurrencyStamp");
@@ -222,8 +227,6 @@ namespace DAL.Migrations
 
                     b.HasIndex("AppointmentId");
 
-                    b.HasIndex("CalendarId");
-
                     b.ToTable("Users");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
@@ -264,6 +267,14 @@ namespace DAL.Migrations
                     b.HasDiscriminator().HasValue("Expert");
                 });
 
+            modelBuilder.Entity("DAL.Models.Calendar", b =>
+                {
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithOne("Calendar")
+                        .HasForeignKey("DAL.Models.Calendar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("DAL.Models.DayOff", b =>
                 {
                     b.HasOne("DAL.Models.Calendar")
@@ -275,7 +286,7 @@ namespace DAL.Migrations
                 {
                     b.HasOne("DAL.Models.Appointment", "Appointment")
                         .WithMany("Calendars")
-                        .HasForeignKey("CalendarId")
+                        .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("DAL.Models.Calendar", "Calendar")
@@ -342,10 +353,6 @@ namespace DAL.Migrations
                     b.HasOne("DAL.Models.Appointment")
                         .WithMany("Participants")
                         .HasForeignKey("AppointmentId");
-
-                    b.HasOne("DAL.Models.Calendar", "Calendar")
-                        .WithMany()
-                        .HasForeignKey("CalendarId");
                 });
 
             modelBuilder.Entity("DAL.Models.WorkDay", b =>

@@ -49,8 +49,7 @@ namespace OppifonAPI.Controllers
             {
                 try
                 {
-
-                    var dbExpert = unit.Users.GetEager(id);
+                    var dbExpert = unit.Experts.GetEager(id);
 
                     // Check if there is a spot in the calendar
                     var freeAppointment = dbExpert.Calendar.Appointments.Any(x =>
@@ -58,7 +57,7 @@ namespace OppifonAPI.Controllers
                         dtoAppointment.Time >= x.Appointment.Time.Add(x.Appointment.Duration));
 
                     if (freeAppointment)
-                        return BadRequest(new {message = "Please pick a free spot in the calendar"});
+                        return BadRequest(new { message = "Please pick a free spot in the calendar" });
 
                     // Create appointment
                     var appointment = new Appointment
@@ -79,29 +78,29 @@ namespace OppifonAPI.Controllers
                     {
                         // A user cannot have more than two participants in an appointment
                         appointment.MaxParticipants = 2;
-                        
+
                         // Get user
                         var participator = unit.Users.GetEagerByEmail(dtoAppointment.Email);
+                        appointment.Participants.Add(participator);
 
-                        // Create appointment in the users calendar
-                        participator.Calendar.Appointments.Add(new CalendarAppointment
+                        var userCalendarAppointment = new CalendarAppointment
                         {
                             Appointment = appointment,
                             Calendar = participator.Calendar
-                        });
-                        appointment.Participants.Add(participator);
+                        };
+
+                        participator.Calendar.Appointments.Add(userCalendarAppointment);
                     }
 
-                    // Create appointment in the experts calendar
-                    dbExpert.Calendar.Appointments.Add(new CalendarAppointment
+                    var expertCalendarAppointment = new CalendarAppointment
                     {
                         Appointment = appointment,
                         Calendar = dbExpert.Calendar
-                    });
+                    };
 
+                    dbExpert.Calendar.Appointments.Add(expertCalendarAppointment);
                     unit.Complete();
-                    
-                    return Ok(appointment);
+                    return Ok();
                 }
                 catch (Exception e)
                 {

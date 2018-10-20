@@ -1,4 +1,6 @@
-﻿using DAL.Data;
+﻿using System;
+using System.Linq;
+using DAL.Data;
 using DAL.Models;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -12,5 +14,14 @@ namespace DAL.Persistence
         }
 
         public Context OurContext => Context as Context;
+        public Calendar GetEagerByUserId(Guid id)
+        {
+            return OurContext.Calendars
+                .Where(x => x.UserId == id)
+                .Include(x => x.Appointments)
+                .Include(x => x.DaysOff)
+                .Include(x => x.WorkDays)
+                .SingleOrDefault();
+        }
     }
 }

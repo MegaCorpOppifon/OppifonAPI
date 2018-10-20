@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20181012111028_Init")]
-    partial class Init
+    [Migration("20181020143634_NewInit")]
+    partial class NewInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -39,16 +39,21 @@ namespace DAL.Migrations
                     b.ToTable("Appointments");
                 });
 
-            modelBuilder.Entity("DAL.Models.Calender", b =>
+            modelBuilder.Entity("DAL.Models.Calendar", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<TimeSpan>("DefaultDuration");
 
+                    b.Property<Guid>("UserId");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Calenders");
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Calendars");
                 });
 
             modelBuilder.Entity("DAL.Models.Category", b =>
@@ -68,42 +73,26 @@ namespace DAL.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid?>("CalenderId");
+                    b.Property<Guid?>("CalendarId");
 
                     b.Property<DateTime>("OffDay");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CalenderId");
+                    b.HasIndex("CalendarId");
 
                     b.ToTable("DaysOff");
                 });
 
-            modelBuilder.Entity("DAL.Models.Expert", b =>
+            modelBuilder.Entity("DAL.Models.ManyToMany.CalendarAppointment", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Description");
-
-                    b.Property<Guid?>("ExpertCategoryId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpertCategoryId");
-
-                    b.ToTable("Experts");
-                });
-
-            modelBuilder.Entity("DAL.Models.ManyToMany.CalenderAppointment", b =>
-                {
-                    b.Property<Guid>("CalenderId");
+                    b.Property<Guid>("CalendarId");
 
                     b.Property<Guid>("AppointmentId");
 
-                    b.HasKey("CalenderId", "AppointmentId");
+                    b.HasKey("CalendarId", "AppointmentId");
 
-                    b.ToTable("CalenderAppointments");
+                    b.ToTable("CalendarAppointments");
                 });
 
             modelBuilder.Entity("DAL.Models.ManyToMany.ExpertTag", b =>
@@ -112,19 +101,24 @@ namespace DAL.Migrations
 
                     b.Property<Guid>("TagId");
 
-                    b.Property<Guid?>("ExpertId1");
-
-                    b.Property<Guid?>("TagId1");
-
                     b.HasKey("ExpertId", "TagId");
-
-                    b.HasIndex("ExpertId1");
 
                     b.HasIndex("TagId");
 
-                    b.HasIndex("TagId1");
-
                     b.ToTable("ExpertTags");
+                });
+
+            modelBuilder.Entity("DAL.Models.ManyToMany.MainFieldTag", b =>
+                {
+                    b.Property<Guid>("ExpertId");
+
+                    b.Property<Guid>("TagId");
+
+                    b.HasKey("ExpertId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("MainFieldTags");
                 });
 
             modelBuilder.Entity("DAL.Models.ManyToMany.UserTag", b =>
@@ -189,11 +183,12 @@ namespace DAL.Migrations
 
                     b.Property<DateTime>("Birthday");
 
-                    b.Property<Guid?>("CalenderId");
-
                     b.Property<string>("City");
 
                     b.Property<string>("ConcurrencyStamp");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
 
                     b.Property<string>("Email");
 
@@ -232,9 +227,9 @@ namespace DAL.Migrations
 
                     b.HasIndex("AppointmentId");
 
-                    b.HasIndex("CalenderId");
-
                     b.ToTable("Users");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
                 });
 
             modelBuilder.Entity("DAL.Models.WorkDay", b =>
@@ -242,7 +237,7 @@ namespace DAL.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid?>("CalenderId");
+                    b.Property<Guid?>("CalendarId");
 
                     b.Property<int>("DayOfWeek");
 
@@ -252,35 +247,51 @@ namespace DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CalenderId");
+                    b.HasIndex("CalendarId");
 
                     b.ToTable("WorkDays");
                 });
 
-            modelBuilder.Entity("DAL.Models.DayOff", b =>
-                {
-                    b.HasOne("DAL.Models.Calender")
-                        .WithMany("DaysOff")
-                        .HasForeignKey("CalenderId");
-                });
-
             modelBuilder.Entity("DAL.Models.Expert", b =>
                 {
-                    b.HasOne("DAL.Models.Category", "ExpertCategory")
-                        .WithMany()
-                        .HasForeignKey("ExpertCategoryId");
+                    b.HasBaseType("DAL.Models.User");
+
+                    b.Property<string>("Description");
+
+                    b.Property<Guid?>("ExpertCategoryId");
+
+                    b.HasIndex("ExpertCategoryId");
+
+                    b.ToTable("Expert");
+
+                    b.HasDiscriminator().HasValue("Expert");
                 });
 
-            modelBuilder.Entity("DAL.Models.ManyToMany.CalenderAppointment", b =>
+            modelBuilder.Entity("DAL.Models.Calendar", b =>
+                {
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithOne("Calendar")
+                        .HasForeignKey("DAL.Models.Calendar", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("DAL.Models.DayOff", b =>
+                {
+                    b.HasOne("DAL.Models.Calendar")
+                        .WithMany("DaysOff")
+                        .HasForeignKey("CalendarId");
+                });
+
+            modelBuilder.Entity("DAL.Models.ManyToMany.CalendarAppointment", b =>
                 {
                     b.HasOne("DAL.Models.Appointment", "Appointment")
-                        .WithMany("Calenders")
-                        .HasForeignKey("CalenderId")
+                        .WithMany("Calendars")
+                        .HasForeignKey("CalendarId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("DAL.Models.Calender", "Calender")
+                    b.HasOne("DAL.Models.Calendar", "Calendar")
                         .WithMany("Appointments")
-                        .HasForeignKey("CalenderId")
+                        .HasForeignKey("CalendarId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -291,18 +302,23 @@ namespace DAL.Migrations
                         .HasForeignKey("ExpertId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("DAL.Models.Expert")
-                        .WithMany("MainFields")
-                        .HasForeignKey("ExpertId1");
-
                     b.HasOne("DAL.Models.Tag", "Tag")
                         .WithMany("ExpertsTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
 
-                    b.HasOne("DAL.Models.Tag")
+            modelBuilder.Entity("DAL.Models.ManyToMany.MainFieldTag", b =>
+                {
+                    b.HasOne("DAL.Models.Expert", "Expert")
+                        .WithMany("MainFields")
+                        .HasForeignKey("ExpertId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DAL.Models.Tag", "Tag")
                         .WithMany("ExpertsMainField")
-                        .HasForeignKey("TagId1");
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("DAL.Models.ManyToMany.UserTag", b =>
@@ -337,17 +353,20 @@ namespace DAL.Migrations
                     b.HasOne("DAL.Models.Appointment")
                         .WithMany("Participants")
                         .HasForeignKey("AppointmentId");
-
-                    b.HasOne("DAL.Models.Calender", "Calender")
-                        .WithMany()
-                        .HasForeignKey("CalenderId");
                 });
 
             modelBuilder.Entity("DAL.Models.WorkDay", b =>
                 {
-                    b.HasOne("DAL.Models.Calender")
+                    b.HasOne("DAL.Models.Calendar")
                         .WithMany("WorkDays")
-                        .HasForeignKey("CalenderId");
+                        .HasForeignKey("CalendarId");
+                });
+
+            modelBuilder.Entity("DAL.Models.Expert", b =>
+                {
+                    b.HasOne("DAL.Models.Category", "ExpertCategory")
+                        .WithMany()
+                        .HasForeignKey("ExpertCategoryId");
                 });
 #pragma warning restore 612, 618
         }

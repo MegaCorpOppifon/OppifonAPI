@@ -34,6 +34,12 @@ namespace DAL.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // One to One User and Calendar
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Calendar)
+                .WithOne(c => c.User)
+                .HasForeignKey<Calendar>(u => u.UserId);
+
             // Expert inherit from user
             modelBuilder.Entity<Expert>()
                 .HasBaseType<User>();
@@ -92,7 +98,7 @@ namespace DAL.Data
             modelBuilder.Entity<CalendarAppointment>()
                 .HasOne(ua => ua.Appointment)
                 .WithMany(t => t.Calendars)
-                .HasForeignKey(et => et.CalendarId);
+                .HasForeignKey(et => et.AppointmentId);
         }
     }
 }
