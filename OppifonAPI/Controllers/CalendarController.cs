@@ -37,8 +37,46 @@ namespace OppifonAPI.Controllers
             {
                 try
                 {
-                    var calendar = unit.Users.GetEager(id).Calendar;
-                    return Ok(calendar);
+                    var dbCalendar = unit.Calendars.GetEagerByUserId(id);
+                    var dtoCalendar = new DTOCalendarPrivate
+                    {
+                        Id = dbCalendar.Id,
+                        DefaultDuration = dbCalendar.DefaultDuration,
+                        WorkDays = dbCalendar.WorkDays,
+                        DaysOff = dbCalendar.DaysOff,
+                        Appointments = new List<DTOAppointmentPrivate>()
+                    };
+
+                    foreach (var appointment in dbCalendar.Appointments)
+                    {
+                        var dtoAppointment = new DTOAppointmentPrivate
+                        {
+                            Duration = appointment.Appointment.Duration,
+                            Time = appointment.Appointment.Time,
+                            Participants = new List<DTOUser>()
+                        };
+
+                        foreach (var participant in appointment.Appointment.Participants)
+                        {
+                            dtoAppointment.Participants.Add(new DTOUser
+                            {
+                                Id = participant.Id,
+                                InterestTags = new List<string>(),
+                                IsExpert = participant.IsExpert,
+                                Email = participant.Email,
+                                City = participant.City,
+                                Gender = participant.Gender,
+                                Birthday = participant.Birthday,
+                                LastName = participant.LastName,
+                                FirstName = participant.FirstName,
+                                PhoneNumber = participant.PhoneNumber
+                            });
+                        }
+
+                        dtoCalendar.Appointments.Add(dtoAppointment);
+                    }
+
+                    return Ok(dtoCalendar);
                 }
                 catch (Exception e)
                 {
