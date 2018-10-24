@@ -17,5 +17,12 @@ namespace DAL.Persistence
         {
             return OurContext.Categories.SingleOrDefault(x => x.Name == categoryName);
         }
+
+        public Category GetCategoryEagerByName(string categoryName)
+        {
+            return OurContext.Categories.Where(x => x.Name == categoryName)
+                .Include(x => x.Tags)
+                .SingleOrDefault();
+        }
     }
 }
