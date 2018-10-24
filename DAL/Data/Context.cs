@@ -86,7 +86,7 @@ namespace DAL.Data
                 .WithMany(t => t.UsersTags)
                 .HasForeignKey(et => et.TagId);
 
-            // Many to many users and Appointments
+            // Many to many Calendars and Appointments
             modelBuilder.Entity<CalendarAppointment>()
                 .HasKey(u => new { u.CalendarId, u.AppointmentId });
 

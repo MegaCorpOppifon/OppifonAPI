@@ -11,7 +11,7 @@ using OppifonAPI.DTO;
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class CalendarController : ControllerBase
@@ -28,16 +28,19 @@ namespace OppifonAPI.Controllers
         [HttpGet("user/{id}")]
         public IActionResult GetCalendarUser(Guid id)
         {
-            var claims = User.Claims;
-            var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
-            if (isExpert != "True")
-                return Unauthorized();
+            //var claims = User.Claims;
+            //var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
+            //if (isExpert != "True")
+            //    return Unauthorized();
 
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
                     var dbCalendar = unit.Calendars.GetEagerByUserId(id);
+                    if (dbCalendar == null)
+                        return BadRequest(new {message = $"No calendar was found with id '{id}'"});
+
                     var dtoCalendar = new DTOCalendarPrivate
                     {
                         Id = dbCalendar.Id,
@@ -77,6 +80,43 @@ namespace OppifonAPI.Controllers
                     }
 
                     return Ok(dtoCalendar);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            }
+        }
+
+        ///api/calender/appointment/{id}
+        [HttpPut("appointment/{appointmentId}")]
+        public IActionResult AddUserToAppointment([FromBody] DTOUser dtoUser, Guid appointmentId)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                try
+                {
+                    var dbAppointment = unit.Appointments.GetEager(appointmentId);
+
+                    var dbUser = dtoUser.Email == null ? unit.Users.GetEager(dtoUser.Id) : unit.Users.GetEagerByEmail(dtoUser.Email);
+
+                    if (dbAppointment.MaxParticipants <= dbAppointment.Participants.Count)
+                        return BadRequest(new {message = "Appointment is full"});
+
+                    if (dbAppointment.Participants.Any(x => x.NormalizedEmail == dbUser.NormalizedEmail))
+                        return BadRequest(new {message = "User is already in the appointment"});
+                    
+                    var calendarAppointment = new CalendarAppointment
+                    {
+                        Appointment = dbAppointment,
+                        Calendar = dbUser.Calendar
+                    };
+
+                    dbUser.Calendar.Appointments.Add(calendarAppointment);
+                    dbAppointment.Participants.Add(dbUser);
+                    unit.Complete();
+                    return Ok();
                 }
                 catch (Exception e)
                 {
