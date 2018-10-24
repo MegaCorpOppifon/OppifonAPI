@@ -7,6 +7,7 @@ using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
+using OppifonAPI.Helpers;
 
 namespace OppifonAPI.Controllers
 {
@@ -191,6 +192,33 @@ namespace OppifonAPI.Controllers
                     Console.WriteLine(e);
                     throw;
                 }
+            }
+        }
+
+        [HttpGet("appointment/{appointmentId}")]
+        public IActionResult GetAppointmentUser(Guid appointmentId)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                var dbAppointment = unit.Appointments.GetEager(appointmentId);
+                if (dbAppointment == null)
+                    return BadRequest(new {message = $"No appointment existed with the id '{appointmentId}'"});
+
+                DTOAppointmentPrivate dtoAppointment = new DTOAppointmentPrivate
+                {
+                    Participants = new List<DTOUser>()
+                };
+
+                Mapper.Map(dbAppointment, dtoAppointment);
+
+                foreach (var participant in dbAppointment.Participants)
+                {
+                    DTOUser dtoUser = new DTOUser();
+                    Mapper.Map(participant,dtoUser);
+                    dtoAppointment.Participants.Add(dtoUser);
+                }
+
+                return Ok(dtoAppointment);
             }
         }
 
