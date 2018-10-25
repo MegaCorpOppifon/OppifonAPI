@@ -218,7 +218,7 @@ namespace OppifonAPI.Controllers
             {
                 var dbAppointment = unit.Appointments.GetEager(appointmentId);
                 if (dbAppointment == null)
-                    return BadRequest(new {message = $"No appointment existed with the id '{appointmentId}'"});
+                    return BadRequest(new { message = $"Appointment with id '{appointmentId}' did not exist" });
 
                 DTOAppointmentPrivate dtoAppointment = new DTOAppointmentPrivate
                 {
@@ -239,45 +239,35 @@ namespace OppifonAPI.Controllers
             }
         }
 
-        [HttpDelete("appointment/{userId}/{appointmentId}")]
-        public IActionResult DeleteAppointment(Guid userId, Guid appointmentId)
+        [HttpDelete("appointment/{appointmentId}")]
+        public IActionResult DeleteAppointment(Guid appointmentId)
         {
             //var claims = User.Claims;
             //var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
             //if (isExpert != "True")
             //    return Unauthorized();
 
-            //using (var unit = _factory.GetUOF())
-            //{
-            //    try
-            //    {
-            //        var dbAppointment = unit.Appointments.GetEager(appointmentId);
+            using (var unit = _factory.GetUOF())
+            {
+                try
+                {
+                    var dbAppointment = unit.Appointments.Get(appointmentId);
 
-            //        if (dbAppointment.Owner.Id == userId)
-            //        {
-            //            unit.Appointments.Remove(dbAppointment);
-            //        }
-            //        else
-            //        {
-            //            var calendar = dbAppointment.Participants.SingleOrDefault(x => x.Id == userId);
-            //            if (calendar == null)
-            //                return BadRequest(new { message = "User is not a participant in the appointment" });
+                    if(dbAppointment == null)
+                        return BadRequest(new { message = $"Appointment with id '{appointmentId}' did not exist" });
 
-            //            dbAppointment.Participants.Remove(calendar);
-            //        }
+                    unit.Appointments.Remove(dbAppointment);
+                    unit.Complete();
+                    return Ok();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
 
-            //        unit.Complete();
-            //        return Ok();
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine(e);
-            //        throw;
-            //    }
-                
 
-            //}
-            return BadRequest();
+            }
         }
 
        
