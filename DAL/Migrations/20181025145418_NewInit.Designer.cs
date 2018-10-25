@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20181020174200_FixCalendarAppointmentIdIssue")]
-    partial class FixCalendarAppointmentIdIssue
+    [Migration("20181025145418_NewInit")]
+    partial class NewInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

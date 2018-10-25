@@ -111,7 +111,7 @@ namespace OppifonAPI.Controllers
                             var dbExpert = unit.Experts.GetByEmail(dtoUser.Email);
                             dbExpert.ExpertTags = new List<ExpertTag>();
                             dbExpert.MainFields = new List<MainFieldTag>();
-                            var category = unit.Categories.GetCategoryByName(dtoUser.ExpertCategory);
+                            var category = unit.Categories.GetCategoryEagerByName(dtoUser.ExpertCategory);
                             
                             foreach (var expertTag in dtoUser.ExpertTags)
                             {

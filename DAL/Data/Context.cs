@@ -43,7 +43,7 @@ namespace DAL.Data
             // Expert inherit from user
             modelBuilder.Entity<Expert>()
                 .HasBaseType<User>();
-
+            
             //Many to many experts and tags
             modelBuilder.Entity<MainFieldTag>()
                 .HasKey(e => new { e.ExpertId, e.TagId });
@@ -97,7 +97,7 @@ namespace DAL.Data
 
             modelBuilder.Entity<CalendarAppointment>()
                 .HasOne(ua => ua.Appointment)
-                .WithMany(t => t.Calendars)
+                .WithMany(t => t.Participants)
                 .HasForeignKey(et => et.AppointmentId);
         }
     }

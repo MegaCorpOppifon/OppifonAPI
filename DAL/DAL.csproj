@@ -9,6 +9,11 @@
     <Compile Remove="Migrations\20181020142303_OneToOneRelationShipUserAndCalendar.cs" />
     <Compile Remove="Migrations\20181020142615_OneToOneRelationshipUserCalendar.cs" />
     <Compile Remove="Migrations\20181020142833_OneToOneRelationshipUserCalendar.cs" />
+    <Compile Remove="Migrations\20181025155202_FixAppointmentOwner.cs" />
+    <Compile Remove="Migrations\20181025160624_FixAppointmentOwner.cs" />
+    <Compile Remove="Migrations\20181025161457_NoOwner.cs" />
+    <Compile Remove="Migrations\20181025162001_NoOwner.cs" />
+    <Compile Remove="Migrations\20181025162332_NoOwner.cs" />
   </ItemGroup>
 
   <ItemGroup>

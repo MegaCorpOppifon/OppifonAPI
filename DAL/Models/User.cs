@@ -19,7 +19,6 @@ namespace DAL.Models
         [EmailAddress(ErrorMessage = "Invalid Email Address")]
         [Display(Name = "Email")]
         public override string UserName { get; set; }
-
         public string City { get; set; }
         public DateTime Birthday { get; set; }
         public ICollection<UserTag> InterestTags { get; set; }

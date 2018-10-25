@@ -21,6 +21,8 @@ namespace DAL.Persistence
                 .Include(x => x.Appointments)
                 .ThenInclude(x => x.Appointment)
                 .ThenInclude(x => x.Participants)
+                .ThenInclude(x => x.Calendar)
+                .ThenInclude(x => x.User)
                 .Include(x => x.DaysOff)
                 .Include(x => x.WorkDays)
                 .SingleOrDefault();

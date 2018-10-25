@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20181020143634_NewInit")]
-    partial class NewInit
+    [Migration("20181025150317_FixAppointmentAndUser")]
+    partial class FixAppointmentAndUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -30,11 +30,15 @@ namespace DAL.Migrations
 
                     b.Property<int>("MaxParticipants");
 
+                    b.Property<Guid?>("OwnerId");
+
                     b.Property<string>("Text");
 
                     b.Property<DateTime>("Time");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Appointments");
                 });
@@ -44,11 +48,15 @@ namespace DAL.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<Guid?>("AppointmentId");
+
                     b.Property<TimeSpan>("DefaultDuration");
 
                     b.Property<Guid>("UserId");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -91,6 +99,8 @@ namespace DAL.Migrations
                     b.Property<Guid>("AppointmentId");
 
                     b.HasKey("CalendarId", "AppointmentId");
+
+                    b.HasIndex("AppointmentId");
 
                     b.ToTable("CalendarAppointments");
                 });
@@ -179,8 +189,6 @@ namespace DAL.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
-                    b.Property<Guid?>("AppointmentId");
-
                     b.Property<DateTime>("Birthday");
 
                     b.Property<string>("City");
@@ -225,8 +233,6 @@ namespace DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppointmentId");
-
                     b.ToTable("Users");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
@@ -267,8 +273,19 @@ namespace DAL.Migrations
                     b.HasDiscriminator().HasValue("Expert");
                 });
 
+            modelBuilder.Entity("DAL.Models.Appointment", b =>
+                {
+                    b.HasOne("DAL.Models.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
+                });
+
             modelBuilder.Entity("DAL.Models.Calendar", b =>
                 {
+                    b.HasOne("DAL.Models.Appointment")
+                        .WithMany("Participants")
+                        .HasForeignKey("AppointmentId");
+
                     b.HasOne("DAL.Models.User", "User")
                         .WithOne("Calendar")
                         .HasForeignKey("DAL.Models.Calendar", "UserId")
@@ -286,7 +303,7 @@ namespace DAL.Migrations
                 {
                     b.HasOne("DAL.Models.Appointment", "Appointment")
                         .WithMany("Calendars")
-                        .HasForeignKey("CalendarId")
+                        .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("DAL.Models.Calendar", "Calendar")
@@ -346,13 +363,6 @@ namespace DAL.Migrations
                     b.HasOne("DAL.Models.Category")
                         .WithMany("Tags")
                         .HasForeignKey("CategoryId");
-                });
-
-            modelBuilder.Entity("DAL.Models.User", b =>
-                {
-                    b.HasOne("DAL.Models.Appointment")
-                        .WithMany("Participants")
-                        .HasForeignKey("AppointmentId");
                 });
 
             modelBuilder.Entity("DAL.Models.WorkDay", b =>

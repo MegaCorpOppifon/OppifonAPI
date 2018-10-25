@@ -224,8 +224,8 @@ namespace DAL.Migrations
                 {
                     table.PrimaryKey("PK_CalendarAppointments", x => new { x.CalendarId, x.AppointmentId });
                     table.ForeignKey(
-                        name: "FK_CalendarAppointments_Appointments_CalendarId",
-                        column: x => x.CalendarId,
+                        name: "FK_CalendarAppointments_Appointments_AppointmentId",
+                        column: x => x.AppointmentId,
                         principalTable: "Appointments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -276,6 +276,11 @@ namespace DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CalendarAppointments_AppointmentId",
+                table: "CalendarAppointments",
+                column: "AppointmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Calendars_UserId",
