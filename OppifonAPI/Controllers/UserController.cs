@@ -19,7 +19,7 @@ namespace OppifonAPI.Controllers
     {
         private readonly IFactory _factory;
         private readonly UserManager<User> _userManager;
-        
+
         public UserController(IFactory factory, UserManager<User> userManager)
         {
             _factory = factory;
@@ -31,7 +31,7 @@ namespace OppifonAPI.Controllers
         {
             using (var unit = _factory.GetUOF())
             {
-                DTOUser user = new DTOUser();
+                var user = new DTOUser();
                 var dbUser = unit.Users.GetEager(id);
 
                 user.Id = dbUser.Id;
@@ -55,58 +55,66 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody]DTOUpdateUser dtoUser)
+        public async Task<IActionResult> Update(Guid id,
+            [FromBody] DTOUpdateUser dtoUser)
         {
-
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
                     var dbUser = unit.Users.GetEager(id);
-                    
+
                     dbUser.FirstName = dtoUser.FirstName ?? dbUser.FirstName;
                     dbUser.LastName = dtoUser.LastName ?? dbUser.LastName;
                     dbUser.Email = dtoUser.Email ?? dbUser.Email;
                     dbUser.UserName = dtoUser.Email ?? dbUser.UserName;
                     dbUser.City = dtoUser.City ?? dbUser.City;
-                    dbUser.PhoneNumber = dtoUser.PhoneNumber ?? dbUser.PhoneNumber;
-                    dbUser.Birthday = dtoUser.Birthday == default(DateTime) ? dtoUser.Birthday : dbUser.Birthday;
+                    dbUser.PhoneNumber =
+                        dtoUser.PhoneNumber ?? dbUser.PhoneNumber;
+                    dbUser.Birthday = dtoUser.Birthday == default(DateTime)
+                        ? dtoUser.Birthday
+                        : dbUser.Birthday;
                     dbUser.Gender = dtoUser.Gender ?? dbUser.Gender;
                     dbUser.IsExpert = dtoUser.IsExpert;
 
                     // Interest tags
-                    dbUser.InterestTags = new Collection<UserTag>();
-                    foreach (var interestTag in dtoUser.InterestTags)
+                    if (dtoUser.InterestTags != null)
                     {
-                        var tag = unit.Tags.GetTagByName(interestTag) ?? new Tag { Name = interestTag };
-
-                        var userTag = new UserTag
+                        dbUser.InterestTags = new Collection<UserTag>();
+                        foreach (var interestTag in dtoUser.InterestTags)
                         {
-                            Tag = tag,
-                            User = dbUser
-                        };
+                            var tag = unit.Tags.GetTagByName(interestTag) ??
+                                      new Tag {Name = interestTag};
 
-                        dbUser.InterestTags.Add(userTag);
+                            var userTag = new UserTag
+                            {
+                                Tag = tag,
+                                User = dbUser
+                            };
+
+                            dbUser.InterestTags.Add(userTag);
+                        }
                     }
-                    
+
                     // save 
                     unit.Complete();
                 }
                 catch (Exception ex)
                 {
                     // return error message if there was an exception
-                    return BadRequest(new { message = ex.Message });
+                    return BadRequest(new {message = ex.Message});
                 }
             }
 
             try
             {
                 var dbUser = await _userManager.FindByIdAsync(id.ToString());
-                await _userManager.ChangePasswordAsync(dbUser, dtoUser.OldPassword, dtoUser.NewPassword);
+                await _userManager.ChangePasswordAsync(dbUser,
+                    dtoUser.OldPassword, dtoUser.NewPassword);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new {message = ex.Message});
             }
 
             return Ok();

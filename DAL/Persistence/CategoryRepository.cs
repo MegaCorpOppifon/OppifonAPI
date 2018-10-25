@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using DAL.Data;
 using DAL.Models;
 using DAL.Repositories;
@@ -20,7 +21,7 @@ namespace DAL.Persistence
 
         public Category GetCategoryEagerByName(string categoryName)
         {
-            return OurContext.Categories.Where(x => x.Name == categoryName)
+            return OurContext.Categories.Where(x => string.Compare(x.Name, categoryName, StringComparison.InvariantCultureIgnoreCase) == 0)
                 .Include(x => x.Tags)
                 .SingleOrDefault();
         }

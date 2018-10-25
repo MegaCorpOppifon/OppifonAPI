@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
@@ -126,8 +127,84 @@ namespace OppifonAPI.Controllers
 
         // PUT: api/Expert/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void UpdateExpert(Guid id, [FromBody] DTOExpert dtoExpert)
         {
+            using (var unit = _factory.GetUOF())
+            {
+                var dbExpert = unit.Experts.Get(id);
+                dbExpert.Description = dtoExpert.Description ?? dbExpert.Description;
+                dbExpert.City = dtoExpert.City ?? dbExpert.City;
+                dbExpert.Email = dtoExpert.Email ?? dbExpert.Email;
+                dbExpert.FirstName = dtoExpert.FirstName ?? dbExpert.FirstName;
+                dbExpert.LastName = dtoExpert.LastName ?? dbExpert.LastName;
+                dbExpert.Gender = dtoExpert.Gender ?? dbExpert.Gender;
+                dbExpert.PhoneNumber = dtoExpert.PhoneNumber ?? dbExpert.PhoneNumber;
+                dbExpert.Birthday = dtoExpert.Birthday == default(DateTime)
+                    ? dtoExpert.Birthday
+                    : dbExpert.Birthday;
+
+                if (dtoExpert.InterestTags != null)
+                {
+                    dbExpert.InterestTags = new Collection<UserTag>();
+                    foreach (var interestTag in dtoExpert.InterestTags)
+                    {
+                        var tag = unit.Tags.GetTagByName(interestTag) ??
+                                  new Tag { Name = interestTag };
+
+                        var userTag = new UserTag
+                        {
+                            Tag = tag,
+                            User = dbExpert
+                        };
+
+                        dbExpert.InterestTags.Add(userTag);
+                    }
+                }
+
+                if (dtoExpert.ExpertTags != null)
+                {
+                    dbExpert.ExpertTags = new Collection<ExpertTag>();
+                    foreach (var expertTag in dtoExpert.ExpertTags)
+                    {
+                        var tag = unit.Tags.GetTagByName(expertTag) ??
+                                  new Tag { Name = expertTag };
+
+                        var newExpertTag = new ExpertTag
+                        {
+                            Tag = tag,
+                            Expert = dbExpert
+                        };
+
+                        dbExpert.ExpertTags.Add(newExpertTag);
+                    }
+                }
+
+                if (dtoExpert.MainFields != null)
+                {
+                    dbExpert.MainFields = new Collection<MainFieldTag>();
+                    foreach (var mainFieldTag in dtoExpert.MainFields)
+                    {
+                        var tag = unit.Tags.GetTagByName(mainFieldTag) ??
+                                  new Tag { Name = mainFieldTag };
+
+                        var newMainFieldTag = new MainFieldTag
+                        {
+                            Tag = tag,
+                            Expert = dbExpert
+                        };
+
+                        dbExpert.MainFields.Add(newMainFieldTag);
+                    }
+                }
+
+                if (dtoExpert.ExpertCategory != null)
+                {
+                    var category = unit.Categories.GetCategoryByName(dtoExpert.ExpertCategory);
+                    dbExpert.ExpertCategory = category;
+                }
+
+                unit.Complete();
+            }
         }
 
         // DELETE: api/ApiWithActions/5
