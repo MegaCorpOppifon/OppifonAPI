@@ -112,8 +112,7 @@ namespace OppifonAPI.Controllers
                             dbExpert.ExpertTags = new List<ExpertTag>();
                             dbExpert.MainFields = new List<MainFieldTag>();
                             var category = unit.Categories.GetCategoryByName(dtoUser.ExpertCategory);
-                            category.Tags = new List<Tag>();
-
+                            
                             foreach (var expertTag in dtoUser.ExpertTags)
                             {
                                 var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag {Name = expertTag};
@@ -128,6 +127,8 @@ namespace OppifonAPI.Controllers
 
                                 dbExpert.ExpertTags.Add(newExpertTag);
                             }
+
+                            unit.Complete();
 
                             foreach (var expertTag in dtoUser.MainFields)
                             {

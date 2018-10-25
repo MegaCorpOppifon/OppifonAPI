@@ -4,7 +4,6 @@ using System.Linq;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -14,83 +13,16 @@ namespace OppifonAPI.Controllers
     [ApiController]
     //[Authorize]
     [Produces("application/json")]
-    [Route("api/[controller]")]
-    public class CalendarController : ControllerBase
+    [Route("api/calendar/[controller]")]
+    public class AppointmentController : ControllerBase
     {
         private readonly IFactory _factory;
 
-        public CalendarController(IFactory factory)
+        public AppointmentController(IFactory factory)
         {
             _factory = factory;
         }
 
-        #region user
-
-        [HttpGet("user/{id}")]
-        public IActionResult GetCalendarUser(Guid id)
-        {
-            //var claims = User.Claims;
-            //var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
-            //if (isExpert != "True")
-            //    return Unauthorized();
-
-            using (var unit = _factory.GetUOF())
-            {
-                try
-                {
-                    var dbCalendar = unit.Calendars.GetEagerByUserId(id);
-                    if (dbCalendar == null)
-                        return BadRequest(new {message = $"No calendar was found with id '{id}'"});
-
-                    var dtoCalendar = new DTOCalendarPrivate
-                    {
-                        Id = dbCalendar.Id,
-                        DefaultDuration = dbCalendar.DefaultDuration,
-                        WorkDays = dbCalendar.WorkDays,
-                        DaysOff = dbCalendar.DaysOff,
-                        Appointments = new List<DTOAppointmentPrivate>()
-                    };
-
-                    foreach (var appointment in dbCalendar.Appointments)
-                    {
-                        var dtoAppointment = new DTOAppointmentPrivate
-                        {
-                            Duration = appointment.Appointment.Duration,
-                            Time = appointment.Appointment.Time,
-                            Participants = new List<DTOUser>()
-                        };
-
-                        foreach (var participant in appointment.Appointment.Participants)
-                        {
-                            dtoAppointment.Participants.Add(new DTOUser
-                            {
-                                Id = participant.Id,
-                                InterestTags = new List<string>(),
-                                IsExpert = participant.IsExpert,
-                                Email = participant.Email,
-                                City = participant.City,
-                                Gender = participant.Gender,
-                                Birthday = participant.Birthday,
-                                LastName = participant.LastName,
-                                FirstName = participant.FirstName,
-                                PhoneNumber = participant.PhoneNumber
-                            });
-                        }
-
-                        dtoCalendar.Appointments.Add(dtoAppointment);
-                    }
-
-                    return Ok(dtoCalendar);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }
-        }
-
-        ///api/calender/appointment/{id}
         [HttpPut("appointment/{appointmentId}")]
         public IActionResult AddUserToAppointment([FromBody] DTOUser dtoUser, Guid appointmentId)
         {
@@ -103,11 +35,11 @@ namespace OppifonAPI.Controllers
                     var dbUser = dtoUser.Email == null ? unit.Users.GetEager(dtoUser.Id) : unit.Users.GetEagerByEmail(dtoUser.Email);
 
                     if (dbAppointment.MaxParticipants <= dbAppointment.Participants.Count)
-                        return BadRequest(new {message = "Appointment is full"});
+                        return BadRequest(new { message = "Appointment is full" });
 
                     if (dbAppointment.Participants.Any(x => x.NormalizedEmail == dbUser.NormalizedEmail))
-                        return BadRequest(new {message = "User is already in the appointment"});
-                    
+                        return BadRequest(new { message = "User is already in the appointment" });
+
                     var calendarAppointment = new CalendarAppointment
                     {
                         Appointment = dbAppointment,
@@ -127,14 +59,14 @@ namespace OppifonAPI.Controllers
             }
         }
 
-        [HttpPost("{id}/appointment")]
-        public IActionResult AddAppointmentUser([FromBody] DTOAppointment dtoAppointment, Guid id)
+        [HttpPost("{userId}/appointment")]
+        public IActionResult AddAppointment([FromBody] DTOAppointment dtoAppointment, Guid userId)
         {
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
-                    var dbExpert = unit.Experts.GetEager(id);
+                    var dbExpert = unit.Experts.GetEager(userId);
 
                     // Check if there is a spot in the calendar
                     var freeAppointment = dbExpert.Calendar.Appointments.Any(x =>
@@ -202,7 +134,7 @@ namespace OppifonAPI.Controllers
             {
                 var dbAppointment = unit.Appointments.GetEager(appointmentId);
                 if (dbAppointment == null)
-                    return BadRequest(new {message = $"No appointment existed with the id '{appointmentId}'"});
+                    return BadRequest(new { message = $"No appointment existed with the id '{appointmentId}'" });
 
                 DTOAppointmentPrivate dtoAppointment = new DTOAppointmentPrivate
                 {
@@ -214,56 +146,13 @@ namespace OppifonAPI.Controllers
                 foreach (var participant in dbAppointment.Participants)
                 {
                     DTOUser dtoUser = new DTOUser();
-                    Mapper.Map(participant,dtoUser);
+                    Mapper.Map(participant, dtoUser);
                     dtoAppointment.Participants.Add(dtoUser);
                 }
 
                 return Ok(dtoAppointment);
             }
         }
-
-        #endregion
-
-        #region expert
-
-        [HttpGet("expert/{id}")]
-        public IActionResult GetCalendarExpert(Guid id)
-        {
-            using (var unit = _factory.GetUOF())
-            {
-                try
-                {
-                    var calendar = new DTOCalendarPublic();
-
-                    var dbCalendar = unit.Users.GetEager(id).Calendar;
-
-                    calendar.Id = dbCalendar.Id;
-                    calendar.DaysOff = dbCalendar.DaysOff;
-                    calendar.DefaultDuration = dbCalendar.DefaultDuration;
-                    calendar.WorkDays = dbCalendar.WorkDays;
-                    calendar.Appointments = new List<DTOAppointmentPublic>();
-
-                    foreach (var appointment in dbCalendar.Appointments)
-                    {
-                        calendar.Appointments.Add(
-                            new DTOAppointmentPublic
-                            {
-                                Time = appointment.Appointment.Time,
-                                Duration = appointment.Appointment.Duration
-                            });
-                    }
-
-                    return Ok(calendar);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }
-        }
-
-        #endregion
 
     }
 }

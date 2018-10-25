@@ -31,6 +31,7 @@ namespace DAL.Persistence
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.Calendar)
                 .ThenInclude(y => y.Appointments)
+                .ThenInclude(x => x.Appointment)
                 .SingleOrDefault();
         }
 
