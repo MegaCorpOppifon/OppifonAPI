@@ -43,6 +43,12 @@ namespace DAL.Data
             // Expert inherit from user
             modelBuilder.Entity<Expert>()
                 .HasBaseType<User>();
+
+            // One to May Category and Expert
+            modelBuilder.Entity<Expert>()
+                .HasOne(x => x.ExpertCategory)
+                .WithMany(x => x.Experts)
+                .OnDelete(DeleteBehavior.SetNull);
             
             //Many to many experts and tags
             modelBuilder.Entity<MainFieldTag>()

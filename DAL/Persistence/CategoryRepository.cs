@@ -23,6 +23,14 @@ namespace DAL.Persistence
         {
             return OurContext.Categories.Where(x => string.Compare(x.Name, categoryName, StringComparison.InvariantCultureIgnoreCase) == 0)
                 .Include(x => x.Tags)
+                .Include(x => x.Experts)
+                .ThenInclude(x => x.MainFields)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.Experts)
+                .ThenInclude(x => x.ExpertTags)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.Experts)
+                .ThenInclude(x => x.ExpertCategory)
                 .SingleOrDefault();
         }
     }
