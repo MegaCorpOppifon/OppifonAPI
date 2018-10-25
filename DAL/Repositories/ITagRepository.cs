@@ -1,4 +1,5 @@
-﻿using DAL.Models;
+﻿using System.Collections.Generic;
+using DAL.Models;
 
 namespace DAL.Repositories
 {
