@@ -18,7 +18,8 @@ namespace DAL.Persistence
         {
             return OurContext.Appointments.Where(x => x.Id == id)
                 .Include(x => x.Participants)
-                .Include(x => x.Calendars)
+                .ThenInclude(x => x.Calendar)
+                .ThenInclude(x => x.User)
                 .SingleOrDefault();
         }
     }

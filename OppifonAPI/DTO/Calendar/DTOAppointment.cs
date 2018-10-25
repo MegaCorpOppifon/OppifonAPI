@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OppifonAPI.DTO
 {
@@ -10,7 +7,7 @@ namespace OppifonAPI.DTO
         public DateTime Time { get; set; }
         public TimeSpan Duration { get; set; }
         public string Name { get; set; }
-        public string Email { get; set; }
+        public Guid CreatorId { get; set; }
         public string Text { get; set; }
         public int MaxParticipants { get; set; }
     }
