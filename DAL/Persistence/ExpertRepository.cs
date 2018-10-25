@@ -28,6 +28,12 @@ namespace DAL.Persistence
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.Calendar)
                 .ThenInclude(y => y.Appointments)
+                .Include(x => x.MainFields)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.ExpertTags)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.Reviews)
+                .Include(x => x.ExpertCategory)
                 .SingleOrDefault();
         }
         public Expert GetByEmail(string email)
@@ -46,6 +52,23 @@ namespace DAL.Persistence
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.ExpertCategory)
                 .ToList();
+        }
+
+        public ICollection<Expert> GetAllEager()
+        {
+            return OurContext.Experts
+                .Include(x => x.InterestTags)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.Calendar)
+                .ThenInclude(y => y.Appointments)
+                .Include(x => x.MainFields)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.ExpertTags)
+                .ThenInclude(x => x.Tag)
+                .Include(x => x.Reviews)
+                .Include(x => x.ExpertCategory)
+                .ToList();
+
         }
 
         public Context OurContext => Context as Context;

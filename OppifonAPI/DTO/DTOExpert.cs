@@ -12,5 +12,6 @@ namespace OppifonAPI.DTO
         public string Description { get; set; }
         public ICollection<string> ExpertTags { get; set; }
         public ICollection<string> MainFields { get; set; }
+        public ICollection<DTOReview> Reviews { get; set; }
     }
 }

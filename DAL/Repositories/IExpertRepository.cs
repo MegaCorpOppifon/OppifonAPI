@@ -10,5 +10,6 @@ namespace DAL.Repositories
         Expert GetEager(Guid id);
         Expert GetEagerByEmail(string email);
         ICollection<Expert> GetExpertsWithTagName(string tagName);
+        ICollection<Expert> GetAllEager();
     }
 }
