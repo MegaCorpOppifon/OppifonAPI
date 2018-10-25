@@ -25,17 +25,40 @@ namespace OppifonAPI.Controllers
         public IActionResult GetAllExperts()
         {
             var dtoExperts = new List<DTOExpert>();
-            IEnumerable<Expert> experts;
+            IEnumerable<Expert> dbExperts;
 
             using (var unit = _factory.GetUOF())
             {
-                experts = unit.Experts.GetAll();
+                dbExperts = unit.Experts.GetAllEager();
             }
 
-            foreach (var expert in experts)
+            foreach (var dbExpert in dbExperts)
             {
-                var dtoExpert = new DTOExpert();
-                Mapper.Map(expert, dtoExpert);
+                var dtoExpert = new DTOExpert
+                {
+                    Reviews = new List<DTOReview>(),
+                    MainFields = new List<string>(),
+                    ExpertTags = new List<string>(),
+                };
+                Mapper.Map(dbExpert, dtoExpert);
+                dtoExpert.ExpertCategory = dbExpert.ExpertCategory.Name;
+
+                foreach (var dbExpertReview in dbExpert.Reviews)
+                {
+                    var review = new DTOReview();
+                    Mapper.Map(dbExpertReview, review);
+                    dtoExpert.Reviews.Add(review);
+                }
+
+                foreach (var dbExpertMainField in dbExpert.MainFields)
+                {
+                    dtoExpert.MainFields.Add(dbExpertMainField.Tag.Name);
+                }
+
+                foreach (var dbExpertTag in dbExpert.ExpertTags)
+                {
+                    dtoExpert.ExpertTags.Add(dbExpertTag.Tag.Name);
+                }
                 dtoExperts.Add(dtoExpert);
             }
 
@@ -46,19 +69,44 @@ namespace OppifonAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult GetExpert(Guid id)
         {
-            var dtoExpert = new DTOExpert();
-            Expert expert;
+            var dtoExpert = new DTOExpert
+            {
+                Reviews = new List<DTOReview>(),
+                MainFields = new List<string>(),
+                ExpertTags = new List<string>(),
+            };
+            Expert dbExpert;
 
             using (var unit = _factory.GetUOF())
             {
-                expert = unit.Experts.Get(id);
+                dbExpert = unit.Experts.GetEager(id);
             }
 
-            if (expert == null)
+            if (dbExpert == null)
                 return BadRequest(new
                     {message = $"Expert with id '{id}' did not exist."});
 
-            Mapper.Map(expert, dtoExpert);
+            Mapper.Map(dbExpert, dtoExpert);
+
+            dtoExpert.ExpertCategory = dbExpert.ExpertCategory.Name;
+
+            foreach (var dbExpertReview in dbExpert.Reviews)
+            {
+                var review = new DTOReview();
+                Mapper.Map(dbExpertReview, review);
+                dtoExpert.Reviews.Add(review);
+            }
+
+            foreach (var dbExpertMainField in dbExpert.MainFields)
+            {
+                dtoExpert.MainFields.Add(dbExpertMainField.Tag.Name);
+            }
+
+            foreach (var dbExpertTag in dbExpert.ExpertTags)
+            {
+                dtoExpert.ExpertTags.Add(dbExpertTag.Tag.Name);
+            }
+
             return Ok(dtoExpert);
         }
 
@@ -207,12 +255,32 @@ namespace OppifonAPI.Controllers
             }
         }
 
-
-
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+
+        [HttpPost("{expertId}/review")]
+        public IActionResult AddReview([FromBody] DTOReview dtoReview,Guid expertId)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                var dbExpert = unit.Experts.GetEager(expertId);
+                if (dbExpert == null)
+                    return BadRequest(new {message = $"Expert with id '{expertId}' did not exist"});
+
+                var review = new Review();
+                Mapper.Map(dtoReview, review);
+
+                if (dtoReview.Anonymity)
+                    review.Name = "";
+                
+                dbExpert.Reviews.Add(review);
+                unit.Complete();
+
+                return Ok();
+            }
         }
     }
 }
