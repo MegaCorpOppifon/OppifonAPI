@@ -282,5 +282,29 @@ namespace OppifonAPI.Controllers
                 return Ok();
             }
         }
+
+        [HttpGet("{expertId}/review")]
+        public IActionResult GetReviews(Guid expertId)
+        {
+            Expert dbExpert;
+            using (var unit = _factory.GetUOF())
+            {
+                dbExpert = unit.Experts.GetEager(expertId);
+                if (dbExpert == null)
+                    return BadRequest(new {message = $"Expert with id '{expertId}' did not exist"});
+            }
+
+            var reviews = new List<DTOReview>();
+
+            foreach (var review in dbExpert.Reviews)
+            {
+                var dtoReview = new DTOReview();
+                Mapper.Map(review, dtoReview);
+                reviews.Add(dtoReview);
+            }
+            
+            return Ok(reviews);
+            
+        }
     }
 }
