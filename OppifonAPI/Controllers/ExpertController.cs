@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
@@ -305,6 +306,27 @@ namespace OppifonAPI.Controllers
             
             return Ok(reviews);
             
+        }
+
+        [HttpGet("{expertId}/review/{reviewId}")]
+        public IActionResult GetReviews(Guid expertId, Guid reviewId)
+        {
+            Review dbReview;
+            using (var unit = _factory.GetUOF())
+            {
+                var dbExpert = unit.Experts.GetEager(expertId);
+                if (dbExpert == null)
+                    return BadRequest(new { message = $"Expert with id '{expertId}' did not exist" });
+
+                dbReview = dbExpert.Reviews.FirstOrDefault(x => x.Id == reviewId);
+                if(dbReview == null)
+                    return BadRequest(new { message = $"Review with id '{reviewId}' did not exist" });
+            }
+
+            var dtoReview = new DTOReview();
+            Mapper.Map(dbReview, dtoReview);
+            
+            return Ok(dtoReview);
         }
     }
 }
