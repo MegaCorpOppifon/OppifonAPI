@@ -194,7 +194,8 @@ namespace OppifonAPI.Controllers
             var claims = new[]
             {
                 new Claim("email", user.Email),
-                new Claim("name", user.FirstName + " " + user.LastName), 
+                new Claim("firstName", user.FirstName),
+                new Claim("lastName", user.LastName), 
                 new Claim("id", user.Id.ToString()), 
                 new Claim("city", user.City), 
                 new Claim("birthday", user.Birthday.ToString(CultureInfo.InvariantCulture)),
