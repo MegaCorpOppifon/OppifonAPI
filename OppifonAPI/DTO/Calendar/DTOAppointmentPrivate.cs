@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace OppifonAPI.DTO
+namespace OppifonAPI.DTO.Calendar
 {
     public class DTOAppointmentPrivate
     {

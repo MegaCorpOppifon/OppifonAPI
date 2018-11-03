@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using DAL.Models;
 
-namespace OppifonAPI.DTO
+namespace OppifonAPI.DTO.Calendar
 {
     public class DTOCalendarPrivate
     {
