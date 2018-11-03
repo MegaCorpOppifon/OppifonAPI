@@ -100,7 +100,7 @@ namespace OppifonAPI
 
             DefaultFilesOptions defaultFile = new DefaultFilesOptions();
             defaultFile.DefaultFileNames.Clear();
-            defaultFile.DefaultFileNames.Add("swagger/index.html");
+            defaultFile.DefaultFileNames.Add("index.html");
             app.UseDefaultFiles(defaultFile);
             app.UseStaticFiles();
 
