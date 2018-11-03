@@ -18,6 +18,7 @@ namespace DAL.UnitOfWork
         IUserTagRepository UserTags { get; }
         IExpertTagRepository ExpertTags { get; }
         IMainFieldTagRepository MainFieldTags { get; }
+        IUserFavoritesRepository UserFavorites { get; }
 
         int Complete();
     }

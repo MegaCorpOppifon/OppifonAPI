@@ -31,6 +31,7 @@ namespace DAL.Data
         public DbSet<ExpertTag> ExpertTags { get; set; }
         public DbSet<UserTag> UserTags { get; set; }
         public DbSet<MainFieldTag> MainFieldTags { get; set; }
+        public DbSet<UserFavorites> UserFavorites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,8 +50,25 @@ namespace DAL.Data
                 .HasOne(x => x.ExpertCategory)
                 .WithMany(x => x.Experts)
                 .OnDelete(DeleteBehavior.SetNull);
-            
-            //Many to many experts and tags
+
+            // Many to many User and Expert
+            modelBuilder.Entity<UserFavorites>()
+                .HasKey(uf => new {uf.UserId, uf.ExpertId});
+
+                
+            modelBuilder.Entity<UserFavorites>()
+                .HasOne(e => e.Expert)
+                .WithMany(e => e.Subscribers)
+                .HasForeignKey(e => e.ExpertId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserFavorites>()
+                .HasOne(e => e.User)
+                .WithMany(e => e.Favorites)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Many to many experts and tags
             modelBuilder.Entity<MainFieldTag>()
                 .HasKey(e => new { e.ExpertId, e.TagId });
 
@@ -64,7 +82,7 @@ namespace DAL.Data
                 .WithMany(t => t.ExpertsMainField)
                 .HasForeignKey(et => et.TagId);
 
-            //Many to many experts and tags
+            // Many to many experts and tags
             modelBuilder.Entity<ExpertTag>()
                .HasKey(e => new { e.ExpertId, e.TagId });
 

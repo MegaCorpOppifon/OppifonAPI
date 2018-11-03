@@ -22,6 +22,7 @@ namespace DAL.Models
         public string City { get; set; }
         public DateTime Birthday { get; set; }
         public ICollection<UserTag> InterestTags { get; set; }
+        public ICollection<UserFavorites> Favorites { get; set; }
         public string Gender { get; set; }
         public Calendar Calendar { get; set; }
         public bool IsExpert { get; set; }

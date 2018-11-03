@@ -132,8 +132,8 @@ namespace OppifonAPI.Controllers
             }
         }
 
-        [HttpPost("{appointmentId}/participant/{userId}")]
-        public IActionResult AddUserToAppointment(Guid userId, Guid appointmentId)
+        [HttpPost("{appointmentId}/participant")]
+        public IActionResult AddUserToAppointment([FromBody] DTOId userId, Guid appointmentId)
         {
             using (var unit = _factory.GetUOF())
             {
@@ -143,9 +143,9 @@ namespace OppifonAPI.Controllers
                     if (dbAppointment == null)
                         return BadRequest(new { message = $"Appointment with id '{appointmentId}' did not exist" });
 
-                    var dbUser = unit.Users.GetEager(userId);
+                    var dbUser = unit.Users.GetEager(userId.Id);
                     if (dbUser == null)
-                        return BadRequest(new { message = $"User with id '{userId}' did not exist" });
+                        return BadRequest(new { message = $"User with id '{userId.Id}' did not exist" });
 
                     if (dbAppointment.MaxParticipants <= dbAppointment.Participants.Count)
                         return BadRequest(new { message = "Appointment is full" });

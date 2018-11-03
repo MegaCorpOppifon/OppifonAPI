@@ -27,6 +27,7 @@ namespace DAL.UnitOfWork
             UserTags = new UserTagRepository(_context);
             ExpertTags = new ExpertTagRepository(_context);
             MainFieldTags = new MainFieldTagRepository(_context);
+            UserFavorites = new UserFavoritesRepository(_context);
         }
 
         public void Dispose()
@@ -55,6 +56,7 @@ namespace DAL.UnitOfWork
         public IUserTagRepository UserTags { get; }
         public IExpertTagRepository ExpertTags { get; }
         public IMainFieldTagRepository MainFieldTags { get; }
+        public IUserFavoritesRepository UserFavorites { get; }
 
         public int Complete()
         {

@@ -13,6 +13,7 @@ namespace OppifonAPI.DTO
         public string PhoneNumber { get; set; }
         public DateTime Birthday { get; set; }
         public ICollection<string> InterestTags { get; set; }
+        public ICollection<DTOSimpleUser> Favorites { get; set; }
         public string Gender { get; set; }
         public bool IsExpert { get; set; }
     }

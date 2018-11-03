@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OppifonAPI.DTO.Calendar
+namespace OppifonAPI.DTO
 {
     public class DTOId
     {
