@@ -14,6 +14,7 @@
     <Compile Remove="Migrations\20181025161457_NoOwner.cs" />
     <Compile Remove="Migrations\20181025162001_NoOwner.cs" />
     <Compile Remove="Migrations\20181025162332_NoOwner.cs" />
+    <Compile Remove="Migrations\20181103184427_Favorites.cs" />
   </ItemGroup>
 
   <ItemGroup>

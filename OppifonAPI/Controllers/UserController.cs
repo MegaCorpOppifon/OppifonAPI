@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using DAL.Factory;
@@ -44,10 +45,22 @@ namespace OppifonAPI.Controllers
                 user.Gender = dbUser.Gender;
                 user.IsExpert = dbUser.IsExpert;
                 user.InterestTags = new List<string>();
+                user.Favorites = new List<DTOSimpleUser>();
 
                 foreach (var interestTag in dbUser.InterestTags)
                 {
                     user.InterestTags.Add(interestTag.Tag.Name);
+                }
+
+                foreach (var favorite in dbUser.Favorites)
+                {
+                    user.Favorites.Add(new DTOSimpleUser
+                    {
+                        FirstName = favorite.Expert.FirstName,
+                        LastName = favorite.Expert.LastName,
+                        Email = favorite.Expert.Email,
+                        Id = favorite.Expert.Id
+                    });
                 }
 
                 return Ok(user);
@@ -55,8 +68,7 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id,
-            [FromBody] DTOUpdateUser dtoUser)
+        public async Task<IActionResult> Update(Guid id, [FromBody] DTOUpdateUser dtoUser)
         {
             using (var unit = _factory.GetUOF())
             {
@@ -115,6 +127,52 @@ namespace OppifonAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new {message = ex.Message});
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("{userId}/favorites")]
+        public IActionResult AddFavorite([FromBody] DTOId expertId, Guid userId)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                var dbUser = unit.Users.GetEager(userId);
+                var dbExpert = unit.Experts.Get(expertId.Id);
+
+                if (dbExpert == null)
+                    return BadRequest(new {message = $"Expert with id: {expertId} does not exist"});
+
+                if (dbUser.Favorites.Any(x => x.ExpertId == expertId.Id))
+                    return BadRequest(new {message = $"Favorite with id {expertId.Id}, is already in list"});
+
+                var userFavorite = new UserFavorites
+                {
+                    Expert = dbExpert,
+                    User = dbUser
+                };
+
+                dbUser.Favorites.Add(userFavorite);
+
+                unit.Complete();
+            }
+
+            return Ok();
+        }
+        [HttpDelete("{userId}/favorites/{expertId}")]
+        public IActionResult RemoveFavorite(Guid userId, Guid expertId)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                var dbUser = unit.Users.GetEager(userId);
+                var expert = dbUser.Favorites.SingleOrDefault(x => x.ExpertId == expertId);
+
+                if (expert == null)
+                    return BadRequest(new {message = $"No expert found in favorites list with id {expertId}"});
+
+                dbUser.Favorites.Remove(expert);
+
+                unit.Complete();
             }
 
             return Ok();

@@ -14,5 +14,6 @@ namespace DAL.Models
         public ICollection<ExpertTag> ExpertTags { get; set; }
         public ICollection<MainFieldTag> MainFields { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<UserFavorites> Subscribers { get; set; }
     }
 }
