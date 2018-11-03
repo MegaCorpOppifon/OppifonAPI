@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace OppifonAPI
 {
@@ -64,7 +65,15 @@ namespace OppifonAPI
                     ClockSkew = TimeSpan.FromHours(5) //5 minute tolerance for the expiration date
                 };
             });
-           
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Title = "Oppifon API", Version = "v1"
+                });
+            });
+
             services.AddCors();
             services.AddMvc();
             services.AddSingleton<IFactory,Factory>();
@@ -75,8 +84,19 @@ namespace OppifonAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json",
+                    "Oppifon API V1");
+            });
+
             app.UseCors(builder =>
-                builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
             
             app.UseAuthentication();
             app.UseMvc();

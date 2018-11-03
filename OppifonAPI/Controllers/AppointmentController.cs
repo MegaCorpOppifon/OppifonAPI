@@ -37,20 +37,21 @@ namespace OppifonAPI.Controllers
                     var dbUser = unit.Users.GetEager(dtoAppointment.CreatorId);
 
                     // Check if there is a spot in the calendar
-                    var freeAppointment = dbUser.Calendar.Appointments.Any(x =>
-                         x.Appointment.Time <= dtoAppointment.Time &&
-                         dtoAppointment.Time >= x.Appointment.Time.Add(x.Appointment.Duration));
+                    var occupiedTime = dbUser.Calendar.Appointments.Any(x =>
+                         x.Appointment.StartTime <= dtoAppointment.StartTime &&
+                         x.Appointment.EndTime >= dtoAppointment.StartTime);
 
-                    if (freeAppointment)
+                    if (occupiedTime)
                         return BadRequest(new { message = "Please pick a free spot in the calendar" });
 
                     // Create appointment
                     var appointment = new Appointment
                     {
                         Participants = new List<CalendarAppointment>(),
-                        Duration = dtoAppointment.Duration,
-                        Time = dtoAppointment.Time,
+                        StartTime = dtoAppointment.StartTime,
+                        EndTime = dtoAppointment.EndTime,
                         Text = dtoAppointment.Text,
+                        Title = dtoAppointment.Title,
                         MaxParticipants = dtoAppointment.MaxParticipants
                     };
 

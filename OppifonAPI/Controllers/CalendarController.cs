@@ -54,8 +54,12 @@ namespace OppifonAPI.Controllers
                     {
                         var dtoAppointment = new DTOAppointmentPrivate
                         {
-                            Duration = appointment.Appointment.Duration,
-                            Time = appointment.Appointment.Time,
+                            StartTime = appointment.Appointment.StartTime,
+                            EndTime = appointment.Appointment.EndTime,
+                            Id = appointment.AppointmentId,
+                            Text = appointment.Appointment.Text,
+                            Title = appointment.Appointment.Title,
+                            MaxParticipants = appointment.Appointment.MaxParticipants,
                             Participants = new List<DTOUser>()
                         };
 
@@ -112,8 +116,8 @@ namespace OppifonAPI.Controllers
                         calendar.Appointments.Add(
                             new DTOAppointmentPublic
                             {
-                                Time = appointment.Appointment.Time,
-                                Duration = appointment.Appointment.Duration
+                                StartTime = appointment.Appointment.StartTime,
+                                EndTime = appointment.Appointment.EndTime
                             });
                     }
 
