@@ -97,7 +97,13 @@ namespace OppifonAPI
                     .AllowAnyOrigin()
                     .AllowAnyHeader()
                     .AllowAnyMethod());
-            
+
+            DefaultFilesOptions defaultFile = new DefaultFilesOptions();
+            defaultFile.DefaultFileNames.Clear();
+            defaultFile.DefaultFileNames.Add("swagger/index.html");
+            app.UseDefaultFiles(defaultFile);
+            app.UseStaticFiles();
+
             app.UseAuthentication();
             app.UseMvc();
         
