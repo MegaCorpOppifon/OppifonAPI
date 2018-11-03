@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OppifonAPI.DTO
+namespace OppifonAPI.DTO.Calendar
 {
     public class DTOAppointmentPublic
     {
