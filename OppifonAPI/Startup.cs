@@ -105,6 +105,7 @@ namespace OppifonAPI
             app.UseStaticFiles();
 
             app.UseAuthentication();
+            
             app.UseMvc();
         
         }

@@ -15,7 +15,6 @@ namespace OppifonAPI.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [ApiController]
-    [Authorize]
     public class ExpertController : ControllerBase
     {
         private readonly IFactory _factory;
@@ -114,6 +113,7 @@ namespace OppifonAPI.Controllers
 
         // POST: api/Expert
         [HttpPost]
+        [Authorize]
         public IActionResult UpgradeToExpert([FromBody] DTOExpert dtoExpert)
         {
             using (var unit = _factory.GetUOF())
@@ -177,6 +177,7 @@ namespace OppifonAPI.Controllers
 
         // PUT: api/Expert/5
         [HttpPut("{id}")]
+        [Authorize]
         public void UpdateExpert(Guid id, [FromBody] DTOExpert dtoExpert)
         {
             using (var unit = _factory.GetUOF())
@@ -259,11 +260,13 @@ namespace OppifonAPI.Controllers
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
+        [Authorize]
         public void Delete(int id)
         {
         }
 
         [HttpPost("{expertId}/review")]
+        [Authorize]
         public IActionResult AddReview([FromBody] DTOReview dtoReview,Guid expertId)
         {
             using (var unit = _factory.GetUOF())

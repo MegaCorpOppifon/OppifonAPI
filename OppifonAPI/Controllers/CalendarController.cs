@@ -13,7 +13,6 @@ using OppifonAPI.Helpers;
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class CalendarController : ControllerBase
@@ -26,6 +25,7 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpGet("user/{id}")]
+        [Authorize]
         public IActionResult GetCalendarUser(Guid id)
         {
             //var claims = User.Claims;
