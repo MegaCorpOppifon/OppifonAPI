@@ -7,13 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using OppifonAPI.DTO;
 
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
