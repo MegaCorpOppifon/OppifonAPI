@@ -5,7 +5,7 @@ using System.Linq;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -15,6 +15,7 @@ namespace OppifonAPI.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [ApiController]
+    [Authorize]
     public class ExpertController : ControllerBase
     {
         private readonly IFactory _factory;

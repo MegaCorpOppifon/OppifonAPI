@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
@@ -14,7 +15,7 @@ using OppifonAPI.Helpers;
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class AppointmentController : ControllerBase
@@ -35,25 +36,26 @@ namespace OppifonAPI.Controllers
                 try
                 {
                     var dbUser = unit.Users.GetEager(dtoAppointment.CreatorId);
-
-                    // Check if there is a spot in the calendar
-                    var occupiedTime = dbUser.Calendar.Appointments.Any(x =>
-                         x.Appointment.StartTime <= dtoAppointment.StartTime &&
-                         x.Appointment.EndTime >= dtoAppointment.StartTime);
-
-                    if (occupiedTime)
-                        return BadRequest(new { message = "Please pick a free spot in the calendar" });
+                    var startTime = StringToDateTime.Convert(dtoAppointment.StartTime);
+                    var endTime = StringToDateTime.Convert(dtoAppointment.EndTime);
 
                     // Create appointment
                     var appointment = new Appointment
                     {
                         Participants = new List<CalendarAppointment>(),
-                        StartTime = dtoAppointment.StartTime,
-                        EndTime = dtoAppointment.EndTime,
+                        StartTime = startTime,
+                        EndTime = endTime,
                         Text = dtoAppointment.Text,
                         Title = dtoAppointment.Title,
                         MaxParticipants = dtoAppointment.MaxParticipants
                     };
+
+                    //Check if there is a spot in the calendar
+                    var occupiedTime = dbUser.Calendar.Appointments.Any(x => x.Appointment.StartTime <= appointment.StartTime &&
+                         x.Appointment.EndTime >= appointment.StartTime);
+
+                    if (occupiedTime)
+                        return BadRequest(new { message = "Please pick a free spot in the calendar" });
 
                     var calendarAppointment = new CalendarAppointment
                     {
@@ -63,7 +65,8 @@ namespace OppifonAPI.Controllers
 
                     dbUser.Calendar.Appointments.Add(calendarAppointment);
                     unit.Complete();
-                    return Ok();
+
+                    return Ok(appointment.Id);
                 }
                 catch (Exception e)
                 {
@@ -104,11 +107,6 @@ namespace OppifonAPI.Controllers
         [HttpDelete("{appointmentId}")]
         public IActionResult DeleteAppointment(Guid appointmentId)
         {
-            //var claims = User.Claims;
-            //var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
-            //if (isExpert != "True")
-            //    return Unauthorized();
-
             using (var unit = _factory.GetUOF())
             {
                 try
@@ -200,8 +198,5 @@ namespace OppifonAPI.Controllers
                 }
             }
         }
-
-        
-        
     }
 }

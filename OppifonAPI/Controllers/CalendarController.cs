@@ -13,7 +13,7 @@ using OppifonAPI.Helpers;
 namespace OppifonAPI.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class CalendarController : ControllerBase
