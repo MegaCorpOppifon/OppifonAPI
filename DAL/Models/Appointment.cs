@@ -9,6 +9,7 @@ namespace DAL.Models
     {
         [Key]
         public Guid Id { get; set; }
+        public Guid OwnerId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Title { get; set; }

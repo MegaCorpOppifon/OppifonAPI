@@ -28,10 +28,10 @@ namespace OppifonAPI.Controllers
         [Authorize]
         public IActionResult GetCalendarUser(Guid id)
         {
-            //var claims = User.Claims;
-            //var isExpert = claims.FirstOrDefault(x => x.Type == "isExpert")?.Value;
-            //if (isExpert != "True")
-            //    return Unauthorized();
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != id.ToString())
+                return Unauthorized();
 
             using (var unit = _factory.GetUOF())
             {
@@ -130,9 +130,5 @@ namespace OppifonAPI.Controllers
                 }
             }
         }
-
-       
-
-       
     }
 }

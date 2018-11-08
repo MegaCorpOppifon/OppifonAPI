@@ -116,6 +116,11 @@ namespace OppifonAPI.Controllers
         [Authorize]
         public IActionResult UpgradeToExpert([FromBody] DTOExpert dtoExpert)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != dtoExpert.Id.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 var expert = new Expert();
@@ -178,8 +183,13 @@ namespace OppifonAPI.Controllers
         // PUT: api/Expert/5
         [HttpPut("{id}")]
         [Authorize]
-        public void UpdateExpert(Guid id, [FromBody] DTOExpert dtoExpert)
+        public IActionResult UpdateExpert(Guid id, [FromBody] DTOExpert dtoExpert)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != id.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 var dbExpert = unit.Experts.Get(id);
@@ -255,14 +265,21 @@ namespace OppifonAPI.Controllers
                 }
 
                 unit.Complete();
+                return Ok();
             }
         }
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         [Authorize]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != id.ToString())
+                return Unauthorized();
+
+            return Ok();
         }
 
         [HttpPost("{expertId}/review")]
@@ -313,7 +330,7 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpGet("{expertId}/review/{reviewId}")]
-        public IActionResult GetReviews(Guid expertId, Guid reviewId)
+        public IActionResult GetReview(Guid expertId, Guid reviewId)
         {
             Review dbReview;
             using (var unit = _factory.GetUOF())

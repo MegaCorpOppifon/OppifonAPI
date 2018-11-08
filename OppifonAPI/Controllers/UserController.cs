@@ -31,6 +31,11 @@ namespace OppifonAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != id.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 var user = new DTOUser();
@@ -71,6 +76,11 @@ namespace OppifonAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] DTOUpdateUser dtoUser)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != id.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 try
@@ -136,6 +146,11 @@ namespace OppifonAPI.Controllers
         [HttpPost("{userId}/favorites")]
         public IActionResult AddFavorite([FromBody] DTOId expertId, Guid userId)
         {
+            var claims = User.Claims;
+            var id = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (id != userId.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 var dbUser = unit.Users.GetEager(userId);
@@ -163,6 +178,11 @@ namespace OppifonAPI.Controllers
         [HttpDelete("{userId}/favorites/{expertId}")]
         public IActionResult RemoveFavorite(Guid userId, Guid expertId)
         {
+            var claims = User.Claims;
+            var id = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (id != userId.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 var dbUser = unit.Users.GetEager(userId);
