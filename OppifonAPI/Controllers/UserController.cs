@@ -143,6 +143,34 @@ namespace OppifonAPI.Controllers
             return Ok();
         }
 
+        [HttpGet("{userId}/favorites")]
+        public IActionResult GetFavorites(Guid userId)
+        {
+            var claims = User.Claims;
+            var id = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (id != userId.ToString())
+                return Unauthorized();
+
+            using (var unit = _factory.GetUOF())
+            {
+                var dbFavorites = unit.UserFavorites.GetFavorites(userId);
+
+                var list = new List<DTOSimpleUser>();
+                foreach (var favorite in dbFavorites)
+                {
+                    list.Add(new DTOSimpleUser
+                    {
+                        Id = favorite.ExpertId,
+                        Email = favorite.Expert.Email,
+                        FirstName = favorite.Expert.FirstName,
+                        LastName = favorite.Expert.LastName
+                    });
+                }
+
+                return Ok(list);
+            }
+        }
+
         [HttpPost("{userId}/favorites")]
         public IActionResult AddFavorite([FromBody] DTOId expertId, Guid userId)
         {
@@ -198,5 +226,7 @@ namespace OppifonAPI.Controllers
 
             return Ok();
         }
+
+        
     }
 }
