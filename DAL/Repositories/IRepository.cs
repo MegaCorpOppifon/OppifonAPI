@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace DAL.Repositories
@@ -7,8 +8,8 @@ namespace DAL.Repositories
     public interface IRepository<TEntity> where TEntity : class
     {
         TEntity Get(Guid id);
-        IEnumerable<TEntity> GetAll();
-        IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
+        IQueryable<TEntity> GetAll();
+        IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate);
 
         // ReSharper disable once IdentifierTypo
         TEntity SingleOrDefault(Expression<Func<TEntity, bool>> predicator);

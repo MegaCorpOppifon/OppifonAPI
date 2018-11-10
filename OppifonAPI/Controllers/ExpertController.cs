@@ -30,7 +30,7 @@ namespace OppifonAPI.Controllers
 
             using (var unit = _factory.GetUOF())
             {
-                dbExperts = unit.Experts.GetAllEager();
+                dbExperts = unit.Experts.GetAllEager().ToList();
             }
 
             foreach (var dbExpert in dbExperts)

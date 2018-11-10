@@ -41,20 +41,19 @@ namespace DAL.Persistence
             return OurContext.Experts.SingleOrDefault(x => x.Email == email);
         }
 
-        public ICollection<Expert> GetExpertsWithTagName(string tagName)
+        public IQueryable<Expert> GetExpertsWithTagName(string tagName)
         {
             return OurContext.Experts.Where(x =>
-                x.MainFields.Any(y => y.Tag.Name == tagName) ||
-                x.ExpertTags.Any(y => y.Tag.Name == tagName))
+                    x.MainFields.Any(y => y.Tag.Name == tagName) ||
+                    x.ExpertTags.Any(y => y.Tag.Name == tagName))
                 .Include(x => x.MainFields)
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.ExpertTags)
                 .ThenInclude(x => x.Tag)
-                .Include(x => x.ExpertCategory)
-                .ToList();
+                .Include(x => x.ExpertCategory);
         }
 
-        public ICollection<Expert> GetAllEager()
+        public IQueryable<Expert> GetAllEager()
         {
             return OurContext.Experts
                 .Include(x => x.InterestTags)
@@ -66,8 +65,7 @@ namespace DAL.Persistence
                 .Include(x => x.ExpertTags)
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.Reviews)
-                .Include(x => x.ExpertCategory)
-                .ToList();
+                .Include(x => x.ExpertCategory);
 
         }
 
