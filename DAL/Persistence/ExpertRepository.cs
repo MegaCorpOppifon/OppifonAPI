@@ -50,7 +50,8 @@ namespace DAL.Persistence
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.ExpertTags)
                 .ThenInclude(x => x.Tag)
-                .Include(x => x.ExpertCategory);
+                .Include(x => x.ExpertCategory)
+                .Include(x => x.Reviews);
         }
 
         public IQueryable<Expert> GetAllEager()

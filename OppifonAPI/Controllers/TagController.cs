@@ -21,7 +21,7 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllTags()
+        public ActionResult<List<string>> GetAllTags()
         {
             using (var unit = _factory.GetUOF())
             {
@@ -29,42 +29,50 @@ namespace OppifonAPI.Controllers
 
                 var tags = dbTags.Select(dbTag => dbTag.Name).ToList();
 
-                return Ok(tags);
+                return tags;
             }
         }
 
         [HttpGet("{tag}/expert")]
-        public IActionResult GetAllExpertsWithTag(string tag)
+        public ActionResult<List<DTOPublicExpert>> GetAllExpertsWithTag(string tag)
         {
             using (var unit = _factory.GetUOF())
             {
                 var dbExperts = unit.Experts.GetExpertsWithTagName(tag);
 
-                var experts = new List<DTOExpert>();
+                var dtoExperts = new List<DTOPublicExpert>();
                 foreach (var dbExpert in dbExperts)
                 {
-                    var expert = new DTOExpert
+                    var dtoExpert = new DTOPublicExpert
                     {
                         MainFields = new List<string>(),
-                        ExpertTags = new List<string>()
+                        ExpertTags = new List<string>(),
+                        Reviews = new List<DTOReview>()
                     };
-                    Mapper.Map(dbExpert, expert);
-                    expert.ExpertCategory = dbExpert.ExpertCategory.Name;
+                    Mapper.Map(dbExpert, dtoExpert);
+                    dtoExpert.ExpertCategory = dbExpert.ExpertCategory.Name;
 
+                    foreach (var dbExpertReview in dbExpert.Reviews)
+                    {
+                        var review = new DTOReview();
+                        Mapper.Map(dbExpertReview, review);
+                        dtoExpert.Reviews.Add(review);
+                    }
+                    
                     foreach (var mainField in dbExpert.MainFields)
                     {
-                        expert.MainFields.Add(mainField.Tag.Name);
+                        dtoExpert.MainFields.Add(mainField.Tag.Name);
                     }
 
                     foreach (var expertTag in dbExpert.ExpertTags)
                     {
-                        expert.ExpertTags.Add(expertTag.Tag.Name);
+                        dtoExpert.ExpertTags.Add(expertTag.Tag.Name);
                     }
 
-                    experts.Add(expert);
+                    dtoExperts.Add(dtoExpert);
                 }
 
-                return Ok(experts);
+                return dtoExperts;
             }
         }
     }

@@ -23,9 +23,9 @@ namespace OppifonAPI.Controllers
 
         // GET: api/Expert
         [HttpGet]
-        public IActionResult GetAllExperts()
+        public ActionResult<List<DTOPublicExpert>> GetAllExperts()
         {
-            var dtoExperts = new List<DTOExpert>();
+            var dtoExperts = new List<DTOPublicExpert>();
             IEnumerable<Expert> dbExperts;
 
             using (var unit = _factory.GetUOF())
@@ -35,7 +35,7 @@ namespace OppifonAPI.Controllers
 
             foreach (var dbExpert in dbExperts)
             {
-                var dtoExpert = new DTOExpert
+                var dtoExpert = new DTOPublicExpert
                 {
                     Reviews = new List<DTOReview>(),
                     MainFields = new List<string>(),
@@ -63,14 +63,14 @@ namespace OppifonAPI.Controllers
                 dtoExperts.Add(dtoExpert);
             }
 
-            return Ok(dtoExperts);
+            return dtoExperts;
         }
 
         // GET: api/Expert/5
-        [HttpGet("{id}")]
-        public IActionResult GetExpert(Guid id)
+        [HttpGet("{id}", Name = "GetExpert")]
+        public ActionResult<DTOPublicExpert> GetExpert(Guid id)
         {
-            var dtoExpert = new DTOExpert
+            var dtoExpert = new DTOPublicExpert
             {
                 Reviews = new List<DTOReview>(),
                 MainFields = new List<string>(),
@@ -108,13 +108,13 @@ namespace OppifonAPI.Controllers
                 dtoExpert.ExpertTags.Add(dbExpertTag.Tag.Name);
             }
 
-            return Ok(dtoExpert);
+            return dtoExpert;
         }
 
         // POST: api/Expert
         [HttpPost]
         [Authorize]
-        public IActionResult UpgradeToExpert([FromBody] DTOExpert dtoExpert)
+        public ActionResult<DTOExpert> UpgradeToExpert([FromBody] DTOExpert dtoExpert)
         {
             var claims = User.Claims;
             var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -175,9 +175,25 @@ namespace OppifonAPI.Controllers
                 unit.Experts.Add(expert);
 
                 unit.Complete();
-            }
 
-            return Ok();
+                dtoExpert.InterestTags = new List<string>();
+                dtoExpert.Favorites = new List<DTOSimpleUser>();
+                dtoExpert.Reviews = new List<DTOReview>();
+
+                foreach (var interestTag in dbUser.InterestTags)
+                {
+                    dtoExpert.InterestTags.Add(interestTag.Tag.Name);
+                }
+
+                foreach (var userFavorite in dbUser.Favorites)
+                {
+                    var simpleUser = new DTOSimpleUser();
+                    Mapper.Map(userFavorite.Expert, simpleUser);
+                    dtoExpert.Favorites.Add(simpleUser);
+                }
+
+                return CreatedAtAction("GetExpert", new {id = dtoExpert.Id}, dtoExpert);
+            }
         }
 
         // PUT: api/Expert/5
@@ -284,7 +300,7 @@ namespace OppifonAPI.Controllers
 
         [HttpPost("{expertId}/review")]
         [Authorize]
-        public IActionResult AddReview([FromBody] DTOReview dtoReview,Guid expertId)
+        public ActionResult<DTOReview> AddReview([FromBody] DTOReview dtoReview,Guid expertId)
         {
             using (var unit = _factory.GetUOF())
             {
@@ -301,12 +317,14 @@ namespace OppifonAPI.Controllers
                 dbExpert.Reviews.Add(review);
                 unit.Complete();
 
-                return Ok();
+                Mapper.Map(review, dtoReview);
+
+                return CreatedAtAction("GetReview", new {expertId = expertId, reviewId = dtoReview.Id}, dtoReview);
             }
         }
 
         [HttpGet("{expertId}/review")]
-        public IActionResult GetReviews(Guid expertId)
+        public ActionResult<List<DTOReview>> GetReviews(Guid expertId)
         {
             Expert dbExpert;
             using (var unit = _factory.GetUOF())
@@ -325,12 +343,12 @@ namespace OppifonAPI.Controllers
                 reviews.Add(dtoReview);
             }
             
-            return Ok(reviews);
+            return reviews;
             
         }
 
-        [HttpGet("{expertId}/review/{reviewId}")]
-        public IActionResult GetReview(Guid expertId, Guid reviewId)
+        [HttpGet("{expertId}/review/{reviewId}", Name = "GetReview")]
+        public ActionResult<DTOReview> GetReview(Guid expertId, Guid reviewId)
         {
             Review dbReview;
             using (var unit = _factory.GetUOF())
@@ -347,7 +365,7 @@ namespace OppifonAPI.Controllers
             var dtoReview = new DTOReview();
             Mapper.Map(dbReview, dtoReview);
             
-            return Ok(dtoReview);
+            return dtoReview;
         }
     }
 }

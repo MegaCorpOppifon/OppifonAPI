@@ -27,15 +27,19 @@ namespace OppifonAPI.Controllers
             _factory = factory;
         }
 
-        // GET: api/Appointment
         [HttpPost]
-        public IActionResult AddAppointment([FromBody] DTOAppointment dtoAppointment)
+        public ActionResult<Appointment> AddAppointment([FromBody] DTOAppointment dtoAppointment)
         {
+            var claims = User.Claims;
+            var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId != dtoAppointment.OwnerId.ToString())
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
-                    var dbUser = unit.Users.GetEager(dtoAppointment.CreatorId);
+                    var dbUser = unit.Users.GetEager(dtoAppointment.OwnerId);
                     var startTime = StringToDateTime.Convert(dtoAppointment.StartTime);
                     var endTime = StringToDateTime.Convert(dtoAppointment.EndTime);
 
@@ -47,7 +51,8 @@ namespace OppifonAPI.Controllers
                         EndTime = endTime,
                         Text = dtoAppointment.Text,
                         Title = dtoAppointment.Title,
-                        MaxParticipants = dtoAppointment.MaxParticipants
+                        MaxParticipants = dtoAppointment.MaxParticipants,
+                        OwnerId = dtoAppointment.OwnerId
                     };
 
                     //Check if there is a spot in the calendar
@@ -66,7 +71,17 @@ namespace OppifonAPI.Controllers
                     dbUser.Calendar.Appointments.Add(calendarAppointment);
                     unit.Complete();
 
-                    return Ok(appointment.Id);
+                    var res = new DTOAppointmentPrivate
+                    {
+                        Participants = new List<DTOSimpleUser>()
+                    };
+                    var simpleUser = new DTOSimpleUser();
+                    Mapper.Map(dbUser, simpleUser);
+                    res.Participants.Add(simpleUser);
+
+                    Mapper.Map(appointment, res);
+
+                    return CreatedAtAction("GetAppointment", new { appointmentId = res.Id}, res);
                 }
                 catch (Exception e)
                 {
@@ -76,8 +91,8 @@ namespace OppifonAPI.Controllers
             }
         }
 
-        [HttpGet("{appointmentId}")]
-        public IActionResult GetAppointment(Guid appointmentId)
+        [HttpGet("{appointmentId}", Name = "GetAppointment")]
+        public ActionResult<DTOAppointmentPrivate> GetAppointment(Guid appointmentId)
         {
             using (var unit = _factory.GetUOF())
             {
@@ -87,20 +102,25 @@ namespace OppifonAPI.Controllers
 
                 DTOAppointmentPrivate dtoAppointment = new DTOAppointmentPrivate
                 {
-                    Participants = new List<DTOUser>()
+                    Participants = new List<DTOSimpleUser>()
                 };
 
                 Mapper.Map(dbAppointment, dtoAppointment);
 
+                var claims = User.Claims;
+                var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+                if (userId != dbAppointment.OwnerId.ToString())
+                    return Unauthorized();
+
                 foreach (var participant in dbAppointment.Participants)
                 {
 
-                    DTOUser dtoUser = new DTOUser();
+                    var dtoUser = new DTOSimpleUser();
                     Mapper.Map(participant.Calendar.User, dtoUser);
                     dtoAppointment.Participants.Add(dtoUser);
                 }
 
-                return Ok(dtoAppointment);
+                return dtoAppointment;
             }
         }
 
@@ -116,6 +136,11 @@ namespace OppifonAPI.Controllers
                     if (dbAppointment == null)
                         return BadRequest(new { message = $"Appointment with id '{appointmentId}' did not exist" });
 
+                    var claims = User.Claims;
+                    var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+                    if (userId != dbAppointment.OwnerId.ToString())
+                        return Unauthorized();
+
                     unit.Appointments.Remove(dbAppointment);
                     unit.Complete();
                     return Ok();
@@ -125,13 +150,11 @@ namespace OppifonAPI.Controllers
                     Console.WriteLine(e);
                     throw;
                 }
-
-
             }
         }
 
         [HttpPost("{appointmentId}/participant")]
-        public IActionResult AddUserToAppointment([FromBody] DTOId userId, Guid appointmentId)
+        public ActionResult<DTOAppointmentPrivate> AddUserToAppointment([FromBody] DTOId userId, Guid appointmentId)
         {
             using (var unit = _factory.GetUOF())
             {
@@ -159,7 +182,25 @@ namespace OppifonAPI.Controllers
 
                     dbAppointment.Participants.Add(calendarAppointment);
                     unit.Complete();
-                    return Ok();
+
+                    var res = new DTOAppointmentPrivate
+                    {
+                        Participants = new List<DTOSimpleUser>()
+                    };
+
+                    foreach (var participant in dbAppointment.Participants)
+                    {
+                        var simpleUser = new DTOSimpleUser();
+
+                        Mapper.Map(participant.Calendar.User, simpleUser);
+
+                        res.Participants.Add(simpleUser);
+                    }
+
+                    Mapper.Map(dbAppointment, res);
+
+                    return CreatedAtAction("GetAppointment", new { appointmentId = res.Id }, res);
+
                 }
                 catch (Exception e)
                 {
@@ -172,6 +213,11 @@ namespace OppifonAPI.Controllers
         [HttpDelete("{appointmentId}/participant/{userId}")]
         public IActionResult RemoveUserFromAppointment(Guid appointmentId, Guid userId)
         {
+            var claims = User.Claims;
+            var claimsUserId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
+            if (userId.ToString() != claimsUserId)
+                return Unauthorized();
+
             using (var unit = _factory.GetUOF())
             {
                 try
