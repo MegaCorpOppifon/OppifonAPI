@@ -134,7 +134,7 @@ namespace OppifonAPI.Controllers
 
                             unit.Complete();
 
-                            if (dtoUser.ExpertTags == null)
+                            if (dtoUser.MainFields == null)
                                 return BadRequest(new { message = "You must have some main fields" });
 
                             foreach (var expertTag in dtoUser.MainFields)
@@ -187,13 +187,6 @@ namespace OppifonAPI.Controllers
             if (passwordSignInResult.Succeeded)
                 return Ok(GenerateToken(user));
             return BadRequest("Invalid login");
-        }
-
-        [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok();
         }
 
         private JsonToken GenerateToken(User user)

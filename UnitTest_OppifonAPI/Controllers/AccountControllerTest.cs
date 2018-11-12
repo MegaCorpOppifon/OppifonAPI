@@ -13,6 +13,7 @@ using Moq;
 using OppifonAPI.Controllers;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace UnitTest_OppifonAPI.Controllers
 {
@@ -80,15 +81,21 @@ namespace UnitTest_OppifonAPI.Controllers
                 City = "Dublin",
                 Gender = "Male",
                 IsExpert = false,
-                PhoneNumber = "1234567890"
+                PhoneNumber = "1234567890",
+                InterestTags = new List<string> { "Phone" }
             };
 
             var user = new User();
             Mapper.Map(dtoUser, user);
 
             _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).Returns(Task.FromResult(IdentityResult.Success));
+
             _userRepository.Setup(x => x.GetByEmail(It.IsAny<string>())).Returns(user);
             _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepository.Object);
+
+            _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
+            _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
+
             _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
 
             // Act
@@ -151,6 +158,219 @@ namespace UnitTest_OppifonAPI.Controllers
 
             // Assert
             Assert.IsInstanceOfType(result, typeof(OkResult));
+        }
+
+        [TestMethod]
+        public async Task Register_NoExpertTags_BadRequest()
+        {
+            // Arrange
+            var dtoUser = new DTORegisterUser
+            {
+                FirstName = "John",
+                Password = "JohnJohn1234",
+                LastName = "Doe",
+                Birthday = DateTime.Now,
+                Email = "JohnDoe@emai.com",
+                City = "Dublin",
+                Gender = "Male",
+                IsExpert = true,
+                PhoneNumber = "1234567890",
+                ExpertCategory = "Computer Science",
+                MainFields = new List<string> { "Computers" }
+            };
+
+            var category = new Category
+            {
+                Name = dtoUser.ExpertCategory,
+                Experts = new List<Expert>(),
+                Tags = new List<Tag>()
+            };
+
+            var user = new User();
+            var expert = new Expert();
+            Mapper.Map(dtoUser, user);
+            Mapper.Map(user, expert);
+
+            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).Returns(Task.FromResult(IdentityResult.Success));
+
+            _userRepository.Setup(x => x.GetByEmail(It.IsAny<string>())).Returns(user);
+            _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepository.Object);
+
+            _expertRepositoryMock.Setup(x => x.GetByEmail(It.IsAny<string>())).Returns(expert);
+            _unitOfWorkMock.Setup(x => x.Experts).Returns(_expertRepositoryMock.Object);
+
+            _categoryMock.Setup(x => x.GetCategoryEagerByName(It.IsAny<string>())).Returns(category);
+            _unitOfWorkMock.Setup(x => x.Categories).Returns(_categoryMock.Object);
+
+            _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
+            _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
+
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+
+            // Act
+            var result = await _uut.Register(dtoUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Register_NoMainFields_BadRequest()
+        {
+            // Arrange
+            var dtoUser = new DTORegisterUser
+            {
+                FirstName = "John",
+                Password = "JohnJohn1234",
+                LastName = "Doe",
+                Birthday = DateTime.Now,
+                Email = "JohnDoe@emai.com",
+                City = "Dublin",
+                Gender = "Male",
+                IsExpert = true,
+                PhoneNumber = "1234567890",
+                ExpertCategory = "Computer Science",
+                ExpertTags = new List<string> { "Computers" }
+            };
+
+            var category = new Category
+            {
+                Name = dtoUser.ExpertCategory,
+                Experts = new List<Expert>(),
+                Tags = new List<Tag>()
+            };
+
+            var user = new User();
+            var expert = new Expert();
+            Mapper.Map(dtoUser, user);
+            Mapper.Map(user, expert);
+
+            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).Returns(Task.FromResult(IdentityResult.Success));
+
+            _userRepository.Setup(x => x.GetByEmail(It.IsAny<string>())).Returns(user);
+            _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepository.Object);
+
+            _expertRepositoryMock.Setup(x => x.GetByEmail(It.IsAny<string>())).Returns(expert);
+            _unitOfWorkMock.Setup(x => x.Experts).Returns(_expertRepositoryMock.Object);
+
+            _categoryMock.Setup(x => x.GetCategoryEagerByName(It.IsAny<string>())).Returns(category);
+            _unitOfWorkMock.Setup(x => x.Categories).Returns(_categoryMock.Object);
+
+            _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
+            _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
+
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+
+            // Act
+            var result = await _uut.Register(dtoUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_ValidUser_Ok()
+        {
+            // Arrange
+            var user = new User
+            {
+                Email = "",
+                FirstName = "",
+                LastName = "",
+                Id = Guid.NewGuid(),
+                City = "",
+                Birthday = DateTime.Now,
+                Gender = "",
+                IsExpert = false
+            };
+
+            var dtoLoginUser = new DTOLoginUser
+            {
+                Email = It.IsAny<string>(),
+                Password = It.IsAny<string>()
+            };
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).Returns(Task.FromResult(user));
+            _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
+                .Returns(Task.FromResult(SignInResult.Success));
+
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+
+            // Act
+            var result = await _uut.Login(dtoLoginUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_InValidEmail_BadRequest()
+        {
+            // Arrange
+            var user = new User
+            {
+                Email = "",
+                FirstName = "",
+                LastName = "",
+                Id = Guid.NewGuid(),
+                City = "",
+                Birthday = DateTime.Now,
+                Gender = "",
+                IsExpert = false
+            };
+
+            var dtoLoginUser = new DTOLoginUser
+            {
+                Email = It.IsAny<string>(),
+                Password = It.IsAny<string>()
+            };
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).Returns(Task.FromResult((User)null));
+            _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
+                .Returns(Task.FromResult(SignInResult.Failed));
+
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+
+            // Act
+            var result = await _uut.Login(dtoLoginUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Login_InValidPassword_BadRequest()
+        {
+            // Arrange
+            var user = new User
+            {
+                Email = "",
+                FirstName = "",
+                LastName = "",
+                Id = Guid.NewGuid(),
+                City = "",
+                Birthday = DateTime.Now,
+                Gender = "",
+                IsExpert = false
+            };
+
+            var dtoLoginUser = new DTOLoginUser
+            {
+                Email = It.IsAny<string>(),
+                Password = It.IsAny<string>()
+            };
+
+            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).Returns(Task.FromResult(user));
+            _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
+                .Returns(Task.FromResult(SignInResult.Failed));
+
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+
+            // Act
+            var result = await _uut.Login(dtoLoginUser);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
         }
     }
 }
