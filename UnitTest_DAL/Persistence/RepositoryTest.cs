@@ -28,6 +28,17 @@ namespace UnitTest_DAL.Persistence
             _uut = new Repository<User>(_context);
         }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _context.Database.EnsureDeleted();
+        }
+
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
+
         [TestMethod]
         public void Get_EntityNotInDatabase_ReturnsNull()
         {
@@ -45,6 +56,7 @@ namespace UnitTest_DAL.Persistence
             // Arrange
             var user = new User();
             _uut.Add(user);
+            SaveChanges();
 
             // Act
             var result = _uut.Get(user.Id);
@@ -55,15 +67,15 @@ namespace UnitTest_DAL.Persistence
         }
 
         [TestMethod]
-        public void GetAll_EntityNotInDatabase_EmptyList()
+        public void GetAll_NoEntitiesInDatabase_ReturnsEmptyList()
         {
             // Arrange
             
             // Act
-            var result = _uut.GetAll().ToList();
+            var result = _uut.GetAll();
 
             // Assert
-            Assert.AreEqual(0, result.Count);
+            Assert.AreEqual(0, result.Count());
         }
 
         [TestMethod]
@@ -72,7 +84,7 @@ namespace UnitTest_DAL.Persistence
             // Arrange
             _uut.Add(new User());
             _uut.Add(new User());
-            _context.SaveChanges();
+            SaveChanges();
 
             // Act
             var result = _uut.GetAll();
@@ -82,12 +94,26 @@ namespace UnitTest_DAL.Persistence
         }
 
         [TestMethod]
+        public void Find_NoEntitiesInDatabase_ReturnsEmptyList()
+        {
+            // Arrange
+            
+            // Act
+            var result = _uut.Find(x => x.FirstName == "hans");
+
+            // Assert
+            Assert.AreEqual(0, result.Count());
+        }
+
+        [TestMethod]
         public void Find_EntitiesInDatabase_ListContainsTwoElements()
         {
             // Arrange
             const string firstName = "Hans";
-            _uut.Add(new User{FirstName = firstName});
-            _uut.Add(new User{FirstName = firstName});
+            _uut.Add(new User { FirstName = firstName});
+            _uut.Add(new User { FirstName = firstName});
+            _uut.Add(new User ());
+            SaveChanges();
 
             // Act
             var result = _uut.Find(x => x.FirstName == firstName);
@@ -97,11 +123,24 @@ namespace UnitTest_DAL.Persistence
         }
 
         [TestMethod]
+        public void SingleOrDefault_NoEntityInDatabase_ReturnsNull()
+        {
+            // Arrange
+            
+            // Act
+            var result = _uut.SingleOrDefault(x => x.FirstName == "hans");
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
         public void SingleOrDefault_EntityInDatabase_ReturnsEntity()
         {
             // Arrange
             var user = new User{FirstName = "Hans"};
             _uut.Add(user);
+            SaveChanges();
 
             // Act
             var result = _uut.SingleOrDefault(x => x.FirstName == user.FirstName);
@@ -112,28 +151,51 @@ namespace UnitTest_DAL.Persistence
         }
 
         [TestMethod]
-        public void AddRange_EntityInDatabase_ReturnsEntity()
+        public void SingleOrDefault_TwoEntitiesInDatabase_ReturnsNull()
         {
             // Arrange
-            var users = new List<User> {new User(), new User()};
+            var user = new User { FirstName = "Hans" };
+            _uut.Add(user);
+            _uut.Add(user);
+            SaveChanges();
 
             // Act
+            var result = _uut.SingleOrDefault(x => x.FirstName == "hans");
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void AddRange_AddEntities_EntitiesWasAdded()
+        {
+            // Arrange
+            var users = new List<User>
+            {
+                new User(),
+                new User()
+            };
+            
+            // Act
             _uut.AddRange(users);
+            SaveChanges();
 
             // Assert
             Assert.AreEqual(2, _uut.GetAll().Count());
         }
 
         [TestMethod]
-        public void Update_EntityInDatabase_ReturnsEntity()
+        public void Update_EntityInDatabase_EntityWasUpdated()
         {
             // Arrange
             var user = new User();
             _uut.Add(user);
+            SaveChanges();
             
             // Act
             user.FirstName = "Hans";
             _uut.Update(user);
+            SaveChanges();
 
             // Assert
             var result = _uut.GetAll();
@@ -143,34 +205,89 @@ namespace UnitTest_DAL.Persistence
         }
 
         [TestMethod]
-        public void Remove_EntityInDatabase_ReturnsEntity()
+        public void Update_NoEntityInDatabase_EntityWasAdded()
+        {
+            // Arrange
+            var user = new User
+            {
+                FirstName = "Hans"
+            };
+
+            // Act
+            _uut.Update(user);
+            SaveChanges();
+
+            // Assert
+            var result = _uut.GetAll();
+            Assert.AreEqual(1, result.Count());
+            Assert.AreEqual(user, result.First());
+        }
+
+        [TestMethod]
+        public void Remove_EntityInDatabase_EntityIsRemoved()
         {
             // Arrange
             var user = new User();
             _uut.Add(user);
+            SaveChanges();
 
+            // Act
+            _uut.Remove(user);
+            SaveChanges();
+
+            // Assert
+            var result = _uut.GetAll();
+            Assert.AreEqual(0, result.Count());
+        }
+
+        [TestMethod]
+        public void Remove_NoEntityInDatabase_ThrowExecpetion()
+        {
+            // Arrange
+            var user = new User();
+            
             // Act
             _uut.Remove(user);
 
             // Assert
-            var result = _uut.GetAll();
-
-            Assert.AreEqual(0, result.Count());
-            
+            Assert.ThrowsException<DbUpdateConcurrencyException>(() => SaveChanges());
         }
 
         [TestMethod]
-        public void RemoveRange_EntityInDatabase_ReturnsEntity()
+        public void RemoveRange_EntitiesInDatabase_EntitiesAreRemoved()
         {
             // Arrange
-            var users = new List<User> {new User(), new User()};
+            var users = new List<User>
+            {
+                new User(),
+                new User()
+            };
             _uut.AddRange(users);
+            SaveChanges();
 
+            // Act
+            _uut.RemoveRange(users);
+            SaveChanges();
+
+            // Assert
+            Assert.AreEqual(0, _uut.GetAll().Count());
+        }
+
+        [TestMethod]
+        public void RemoveRange_NoEntitiesInDatabase_ThrowException()
+        {
+            // Arrange
+            var users = new List<User>
+            {
+                new User(),
+                new User()
+            };
+            
             // Act
             _uut.RemoveRange(users);
 
             // Assert
-            Assert.AreEqual(0, _uut.GetAll().Count());
+            Assert.ThrowsException<DbUpdateConcurrencyException>(() => SaveChanges());
         }
     }
 }

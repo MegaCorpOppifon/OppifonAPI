@@ -15,6 +15,7 @@ namespace DAL.Models
         public string Title { get; set; }
         public string Text { get; set; }
         public ICollection<CalendarAppointment> Participants { get; set; }
+        [Range(1, int.MaxValue)]
         public int MaxParticipants { get; set; }
     }
 }
