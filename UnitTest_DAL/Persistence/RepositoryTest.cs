@@ -13,6 +13,7 @@ namespace UnitTest_DAL.Persistence
     public class RepositoryTest
     {
         private DbContextOptions<Context> _options;
+        private Context _context;
         private Repository<User> _uut;
 
 
@@ -23,7 +24,8 @@ namespace UnitTest_DAL.Persistence
                 .UseInMemoryDatabase(databaseName: "Oppifon")
                 .Options;
 
-            _uut = new Repository<User>(new Context(_options));
+            _context = new Context(_options);
+            _uut = new Repository<User>(_context);
         }
 
         [TestMethod]
@@ -70,6 +72,7 @@ namespace UnitTest_DAL.Persistence
             // Arrange
             _uut.Add(new User());
             _uut.Add(new User());
+            _context.SaveChanges();
 
             // Act
             var result = _uut.GetAll();
