@@ -34,7 +34,7 @@ namespace UnitTest_OppifonAPI.Controllers
         private Mock<IUserClaimsPrincipalFactory<User>> _userClaimsPrincipalFactoryMock;
 
         // Repositories
-        private Mock<IUnityOfWork> _unitOfWorkMock;
+        private Mock<IUnitOfWork> _unitOfWorkMock;
         private Mock<IUserRepository> _userRepository;
         private Mock<IExpertRepository> _expertRepositoryMock;
         private Mock<ICategoryRepository> _categoryRepositoryMock;
@@ -44,7 +44,7 @@ namespace UnitTest_OppifonAPI.Controllers
         public void Setup()
         {
             // Repositories
-            _unitOfWorkMock = new Mock<IUnityOfWork>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
             _userRepository = new Mock<IUserRepository>();
             _expertRepositoryMock = new Mock<IExpertRepository>();
             _categoryRepositoryMock = new Mock<ICategoryRepository>();

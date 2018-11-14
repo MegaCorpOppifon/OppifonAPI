@@ -8,7 +8,7 @@ namespace OppifonAPI
     {
         public static string ConnectionString { get; set; }
         
-        public IUnityOfWork GetUOF()
+        public IUnitOfWork GetUOF()
         {
             return new UnitOfWork(new Context(ConnectionString));
         }
