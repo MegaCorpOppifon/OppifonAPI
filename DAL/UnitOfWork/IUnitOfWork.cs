@@ -3,7 +3,7 @@ using System;
 
 namespace DAL.UnitOfWork
 {
-    public interface IUnityOfWork : IDisposable
+    public interface IUnitOfWork : IDisposable
     {
         IAppointmentRepository Appointments { get; }
         ICalendarRepository Calendars { get; }

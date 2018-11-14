@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.UnitOfWork
 {
-    public class UnitOfWork : IUnityOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly Context _context;
         
