@@ -13,6 +13,7 @@ using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -26,14 +27,16 @@ namespace OppifonAPI.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _configuration;
         private readonly IFactory _factory;
         
 
-        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
             _factory = factory;
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
