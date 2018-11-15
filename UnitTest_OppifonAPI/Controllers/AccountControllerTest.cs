@@ -8,6 +8,7 @@ using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OppifonAPI.Controllers;
@@ -27,6 +28,7 @@ namespace UnitTest_OppifonAPI.Controllers
         private Mock<IFactory> _factoryMock;
         private Mock<UserManager<User>> _userManagerMock;
         private Mock<SignInManager<User>> _signInManagerMock;
+        private Mock<IConfiguration> _configurationMock;
 
         // Manager dependencies
         private Mock<IUserStore<User>> _userStoreMock;
@@ -62,6 +64,8 @@ namespace UnitTest_OppifonAPI.Controllers
             _signInManagerMock = new Mock<SignInManager<User>>(_userManagerMock.Object,
                 _httpContextAccessorMock.Object, _userClaimsPrincipalFactoryMock.Object, null, null, null);
 
+            _configurationMock = new Mock<IConfiguration>();
+
             _factoryMock = new Mock<IFactory>();
             _factoryMock.Setup(x => x.GetUOF()).Returns(_unitOfWorkMock.Object);
         }
@@ -95,7 +99,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
             _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Register(dtoUser);
@@ -150,7 +154,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
             _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Register(dtoUser);
@@ -204,7 +208,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
             _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Register(dtoUser);
@@ -258,7 +262,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _tagRepositoryMock.Setup(x => x.GetTagByName(It.IsAny<string>()));
             _unitOfWorkMock.Setup(x => x.Tags).Returns(_tagRepositoryMock.Object);
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Register(dtoUser);
@@ -293,7 +297,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
                 .Returns(Task.FromResult(SignInResult.Success));
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Login(dtoLoginUser);
@@ -328,7 +332,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
                 .Returns(Task.FromResult(SignInResult.Failed));
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Login(dtoLoginUser);
@@ -363,7 +367,7 @@ namespace UnitTest_OppifonAPI.Controllers
             _signInManagerMock.Setup(x => x.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), false))
                 .Returns(Task.FromResult(SignInResult.Failed));
 
-            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object);
+            _uut = new AccountController(_factoryMock.Object, _userManagerMock.Object, _signInManagerMock.Object, _configurationMock.Object);
 
             // Act
             var result = await _uut.Login(dtoLoginUser);
