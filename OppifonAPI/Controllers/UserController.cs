@@ -203,6 +203,7 @@ namespace OppifonAPI.Controllers
 
             return Ok();
         }
+
         [HttpDelete("{userId}/favorites/{expertId}")]
         public IActionResult RemoveFavorite(Guid userId, Guid expertId)
         {
@@ -227,6 +228,12 @@ namespace OppifonAPI.Controllers
             return Ok();
         }
 
-        
+        [AllowAnonymous]
+        [HttpPost("ForgotPassword")]
+        public IActionResult ForgotPassword([FromBody] DTOEmail email)
+        {            
+            return Ok();
+        }
+
     }
 }

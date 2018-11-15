@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -158,6 +160,38 @@ namespace OppifonAPI.Controllers
                         ModelState.AddModelError(string.Empty, error.Description);
                     return BadRequest(ModelState);
 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+            }
+        }
+
+        [HttpPost("AddProfilePicture")]
+        public async Task<IActionResult> AddProfilePicture([FromForm] string email, IFormFile image)
+        {
+            using (var unit = _factory.GetUOF())
+            {
+                try
+                {
+                    // find calling user
+                    var currentAppuser = await _userManager.FindByEmailAsync(email);
+                    // Add Image
+
+                    var path = Path.Combine(
+                    Directory.GetCurrentDirectory(), "wwwroot/ProfileImages", image.FileName);
+
+                    using (var fileStream = new FileStream(path, FileMode.Create))
+                    {
+                        await image.CopyToAsync(fileStream);
+                    }
+
+                    currentAppuser.Image = _configuration.GetConnectionString("ImageFolder") + image.FileName;
+
+                    unit.Complete();
+                    return Ok(currentAppuser);
                 }
                 catch (Exception e)
                 {
