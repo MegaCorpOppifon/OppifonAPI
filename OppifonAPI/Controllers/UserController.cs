@@ -215,6 +215,12 @@ namespace OppifonAPI.Controllers
             return Ok();
         }
 
-        
+        [AllowAnonymous]
+        [HttpPost("ForgotPassword")]
+        public IActionResult ForgotPassword([FromBody] DTOEmail email)
+        {            
+            return Ok();
+        }
+
     }
 }
