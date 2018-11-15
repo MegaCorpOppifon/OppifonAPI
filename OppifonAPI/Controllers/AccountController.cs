@@ -13,7 +13,6 @@ using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -28,15 +27,13 @@ namespace OppifonAPI.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IFactory _factory;
-        private readonly IConfiguration _configuration;
+        
 
-
-        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
+        public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager)
         {
             _factory = factory;
             _userManager = userManager;
             _signInManager = signInManager;
-            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -93,6 +90,10 @@ namespace OppifonAPI.Controllers
                     {
                         var dbUser = unit.Users.GetByEmail(dtoUser.Email);
                         dbUser.InterestTags = new Collection<UserTag>();
+
+                        if(dtoUser.InterestTags == null)
+                            dtoUser.InterestTags = new Collection<string>();
+
                         foreach (var interestTag in dtoUser.InterestTags)
                         {
                             var tag = unit.Tags.GetTagByName(interestTag) ?? new Tag {Name = interestTag};
@@ -114,7 +115,10 @@ namespace OppifonAPI.Controllers
                             dbExpert.ExpertTags = new List<ExpertTag>();
                             dbExpert.MainFields = new List<MainFieldTag>();
                             var category = unit.Categories.GetCategoryEagerByName(dtoUser.ExpertCategory);
-                            
+
+                            if (dtoUser.ExpertTags == null)
+                                return BadRequest(new {message = "You must have some expert tags"});
+
                             foreach (var expertTag in dtoUser.ExpertTags)
                             {
                                 var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag {Name = expertTag};
@@ -131,6 +135,9 @@ namespace OppifonAPI.Controllers
                             }
 
                             unit.Complete();
+
+                            if (dtoUser.MainFields == null)
+                                return BadRequest(new { message = "You must have some main fields" });
 
                             foreach (var expertTag in dtoUser.MainFields)
                             {
@@ -214,13 +221,6 @@ namespace OppifonAPI.Controllers
             if (passwordSignInResult.Succeeded)
                 return Ok(GenerateToken(user));
             return BadRequest("Invalid login");
-        }
-
-        [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok();
         }
 
         private JsonToken GenerateToken(User user)

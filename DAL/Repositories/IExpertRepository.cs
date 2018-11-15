@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DAL.Models;
 
 namespace DAL.Repositories
@@ -9,7 +10,7 @@ namespace DAL.Repositories
         Expert GetByEmail(string email);
         Expert GetEager(Guid id);
         Expert GetEagerByEmail(string email);
-        ICollection<Expert> GetExpertsWithTagName(string tagName);
-        ICollection<Expert> GetAllEager();
+        IQueryable<Expert> GetExpertsWithTagName(string tagName);
+        IQueryable<Expert> GetAllEager();
     }
 }

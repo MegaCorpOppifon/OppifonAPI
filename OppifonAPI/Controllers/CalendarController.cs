@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using DAL.Factory;
-using DAL.Models;
-using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
@@ -26,7 +24,7 @@ namespace OppifonAPI.Controllers
 
         [HttpGet("user/{id}")]
         [Authorize]
-        public IActionResult GetCalendarUser(Guid id)
+        public ActionResult<DTOCalendarPrivate> GetCalendarUser(Guid id)
         {
             var claims = User.Claims;
             var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -43,48 +41,32 @@ namespace OppifonAPI.Controllers
 
                     var dtoCalendar = new DTOCalendarPrivate
                     {
-                        Id = dbCalendar.Id,
-                        DefaultDuration = dbCalendar.DefaultDuration,
-                        WorkDays = dbCalendar.WorkDays,
-                        DaysOff = dbCalendar.DaysOff,
-                        Appointments = new List<DTOAppointmentPrivate>()
+                       Appointments = new List<DTOAppointmentPrivate>()
                     };
+
+                    Mapper.Map(dbCalendar, dtoCalendar);
 
                     foreach (var appointment in dbCalendar.Appointments)
                     {
                         var dtoAppointment = new DTOAppointmentPrivate
                         {
-                            StartTime = appointment.Appointment.StartTime,
-                            EndTime = appointment.Appointment.EndTime,
-                            Id = appointment.AppointmentId,
-                            Text = appointment.Appointment.Text,
-                            Title = appointment.Appointment.Title,
-                            MaxParticipants = appointment.Appointment.MaxParticipants,
-                            Participants = new List<DTOUser>()
+                           Participants = new List<DTOSimpleUser>()
                         };
+                        Mapper.Map(appointment.Appointment, dtoAppointment);
 
                         foreach (var participant in appointment.Appointment.Participants)
                         {
                             var user = participant.Calendar.User;
-                            dtoAppointment.Participants.Add(new DTOUser
-                            {
-                                Id = user.Id,
-                                InterestTags = new List<string>(),
-                                IsExpert = user.IsExpert,
-                                Email = user.Email,
-                                City = user.City,
-                                Gender = user.Gender,
-                                Birthday = user.Birthday,
-                                LastName = user.LastName,
-                                FirstName = user.FirstName,
-                                PhoneNumber = user.PhoneNumber
-                            });
+                            var dtoUser = new DTOSimpleUser();
+                            Mapper.Map(user, dtoUser);
+                            dtoAppointment.Participants.Add(dtoUser);
+                            
                         }
 
                         dtoCalendar.Appointments.Add(dtoAppointment);
                     }
 
-                    return Ok(dtoCalendar);
+                    return dtoCalendar;
                 }
                 catch (Exception e)
                 {
@@ -95,21 +77,22 @@ namespace OppifonAPI.Controllers
         }
 
         [HttpGet("expert/{id}")]
-        public IActionResult GetCalendarExpert(Guid id)
+        public ActionResult<DTOCalendarPublic> GetCalendarExpert(Guid id)
         {
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
-                    var calendar = new DTOCalendarPublic();
+                    var dbCalendar = unit.Calendars.GetEagerByUserId(id);
 
-                    var dbCalendar = unit.Users.GetEager(id).Calendar;
-
-                    calendar.Id = dbCalendar.Id;
-                    calendar.DaysOff = dbCalendar.DaysOff;
-                    calendar.DefaultDuration = dbCalendar.DefaultDuration;
-                    calendar.WorkDays = dbCalendar.WorkDays;
-                    calendar.Appointments = new List<DTOAppointmentPublic>();
+                    if (dbCalendar == null)
+                        return BadRequest(new { message = $"No expert was found with id: {id}" });
+                   
+                    var calendar = new DTOCalendarPublic
+                    {
+                        Appointments = new List<DTOAppointmentPublic>()
+                    };
+                    Mapper.Map(dbCalendar, calendar);
 
                     foreach (var appointment in dbCalendar.Appointments)
                     {
@@ -121,7 +104,7 @@ namespace OppifonAPI.Controllers
                             });
                     }
 
-                    return Ok(calendar);
+                    return calendar;
                 }
                 catch (Exception e)
                 {

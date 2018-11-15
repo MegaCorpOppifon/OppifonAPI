@@ -10,6 +10,7 @@ using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using OppifonAPI.DTO;
+using OppifonAPI.Helpers;
 
 namespace OppifonAPI.Controllers
 {
@@ -38,20 +39,13 @@ namespace OppifonAPI.Controllers
 
             using (var unit = _factory.GetUOF())
             {
-                var user = new DTOUser();
                 var dbUser = unit.Users.GetEager(id);
-
-                user.Id = dbUser.Id;
-                user.FirstName = dbUser.FirstName;
-                user.LastName = dbUser.LastName;
-                user.Email = dbUser.Email;
-                user.City = dbUser.City;
-                user.PhoneNumber = dbUser.PhoneNumber;
-                user.Birthday = dbUser.Birthday;
-                user.Gender = dbUser.Gender;
-                user.IsExpert = dbUser.IsExpert;
-                user.InterestTags = new List<string>();
-                user.Favorites = new List<DTOSimpleUser>();
+                var user = new DTOUser
+                {
+                    InterestTags = new List<string>(),
+                    Favorites = new List<DTOSimpleUser>()
+                };
+                Mapper.Map(dbUser, user);
 
                 foreach (var interestTag in dbUser.InterestTags)
                 {
@@ -60,13 +54,8 @@ namespace OppifonAPI.Controllers
 
                 foreach (var favorite in dbUser.Favorites)
                 {
-                    user.Favorites.Add(new DTOSimpleUser
-                    {
-                        FirstName = favorite.Expert.FirstName,
-                        LastName = favorite.Expert.LastName,
-                        Email = favorite.Expert.Email,
-                        Id = favorite.Expert.Id
-                    });
+                    var dtoSimpleUser = new DTOSimpleUser();
+                    Mapper.Map(favorite.Expert, dtoSimpleUser);
                 }
 
                 return Ok(user);
@@ -143,8 +132,8 @@ namespace OppifonAPI.Controllers
             return Ok();
         }
 
-        [HttpGet("{userId}/favorites")]
-        public IActionResult GetFavorites(Guid userId)
+        [HttpGet("{userId}/favorites", Name = "GetFavorites")]
+        public ActionResult<List<DTOSimpleUser>> GetFavorites(Guid userId)
         {
             var claims = User.Claims;
             var id = claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -158,21 +147,17 @@ namespace OppifonAPI.Controllers
                 var list = new List<DTOSimpleUser>();
                 foreach (var favorite in dbFavorites)
                 {
-                    list.Add(new DTOSimpleUser
-                    {
-                        Id = favorite.ExpertId,
-                        Email = favorite.Expert.Email,
-                        FirstName = favorite.Expert.FirstName,
-                        LastName = favorite.Expert.LastName
-                    });
+                    var dtoSimpleUser = new DTOSimpleUser();
+                    Mapper.Map(favorite.Expert, dtoSimpleUser);
+                    list.Add(dtoSimpleUser);
                 }
 
-                return Ok(list);
+                return list;
             }
         }
 
         [HttpPost("{userId}/favorites")]
-        public IActionResult AddFavorite([FromBody] DTOId expertId, Guid userId)
+        public ActionResult<DTOSimpleUser> AddFavorite([FromBody] DTOId expertId, Guid userId)
         {
             var claims = User.Claims;
             var id = claims.FirstOrDefault(x => x.Type == "id")?.Value;
@@ -199,9 +184,11 @@ namespace OppifonAPI.Controllers
                 dbUser.Favorites.Add(userFavorite);
 
                 unit.Complete();
-            }
 
-            return Ok();
+                var simpleUser = new DTOSimpleUser();
+                Mapper.Map(dbUser, simpleUser);
+                return CreatedAtAction("GetFavorites", simpleUser);
+            }
         }
 
         [HttpDelete("{userId}/favorites/{expertId}")]

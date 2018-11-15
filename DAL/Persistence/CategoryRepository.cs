@@ -31,6 +31,8 @@ namespace DAL.Persistence
                 .ThenInclude(x => x.Tag)
                 .Include(x => x.Experts)
                 .ThenInclude(x => x.ExpertCategory)
+                .Include(x => x.Experts)
+                .ThenInclude(x => x.Reviews)
                 .SingleOrDefault();
         }
     }

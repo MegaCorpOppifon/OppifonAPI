@@ -15,14 +15,10 @@ namespace DAL.Persistence
         }
 
         public Context OurContext => Context as Context;
-        public ICollection<UserFavorites> GetFavorites(Guid userId)
+        public IQueryable<UserFavorites> GetFavorites(Guid userId)
         {
-            var dbUser = OurContext.Users.Where(x => x.Id == userId)
-                .Include(x => x.Favorites)
-                .ThenInclude(x => x.Expert)
-                .SingleOrDefault();
-
-            return dbUser?.Favorites.Where(x => x.UserId == userId).ToList();
+            return OurContext.UserFavorites.Where(x => x.UserId == userId)
+                .Include(x => x.Expert);
         }
     }
 }

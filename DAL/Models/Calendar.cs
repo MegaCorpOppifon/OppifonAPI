@@ -13,7 +13,6 @@ namespace DAL.Models
         public ICollection<DayOff> DaysOff { get; set; }
         public ICollection<WorkDay> WorkDays { get; set; }
         public TimeSpan DefaultDuration { get; set; }
-
         public Guid UserId { get; set; }
         public User User { get; set; }
     }

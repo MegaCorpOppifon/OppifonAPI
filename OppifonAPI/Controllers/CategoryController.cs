@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using DAL.Factory;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
@@ -10,7 +9,6 @@ namespace OppifonAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly IFactory _factory;
@@ -18,31 +16,40 @@ namespace OppifonAPI.Controllers
         public CategoryController(IFactory factory) => _factory = factory;
 
         [HttpGet]
-        public IActionResult GetAllCategories()
+        public ActionResult<List<string>> GetAllCategories()
         {
             using (var unit = _factory.GetUOF())
             {
                 var dbCategories = unit.Categories.GetAll();
                 var categories = dbCategories.Select(dbCategory => dbCategory.Name).ToList();
-                return Ok(categories);
+                return categories;
             }
         }
 
         [HttpGet("{category}/expert")]
-        public IActionResult GetExpertsInCategory(string category)
+        public ActionResult<List<DTOPublicExpert>> GetExpertsInCategory(string category)
         {
             using (var unit = _factory.GetUOF())
             {
                 var dbCategory = unit.Categories.GetCategoryEagerByName(category);
 
-                var experts = new List<DTOExpert>();
+                var experts = new List<DTOPublicExpert>();
                 foreach (var dbExpert in dbCategory.Experts)
                 {
-                    var expert = new DTOExpert
+                    var expert = new DTOPublicExpert
                     {
                         MainFields = new List<string>(),
-                        ExpertTags = new List<string>()
+                        ExpertTags = new List<string>(),
+                        Reviews = new List<DTOReview>()
                     };
+
+                    foreach (var review in dbExpert.Reviews)
+                    {
+                        var dtoReview = new DTOReview();
+                        Mapper.Map(review, dtoReview);
+                        expert.Reviews.Add(dtoReview);
+                    }
+
                     Mapper.Map(dbExpert, expert);
                     expert.ExpertCategory = dbExpert.ExpertCategory.Name;
 
@@ -59,7 +66,7 @@ namespace OppifonAPI.Controllers
                     experts.Add(expert);
                 }
 
-                return Ok(experts);
+                return experts;
             }
         }
     }

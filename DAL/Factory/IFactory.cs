@@ -4,6 +4,6 @@ namespace DAL.Factory
 {
     public interface IFactory
     {
-        IUnityOfWork GetUOF();
+        IUnitOfWork GetUOF();
     }
 }
