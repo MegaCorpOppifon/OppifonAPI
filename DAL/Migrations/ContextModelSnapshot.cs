@@ -215,7 +215,7 @@ namespace DAL.Migrations
 
                     b.Property<string>("Gender");
 
-                    b.Property<string>("Image");
+                    b.Property<byte[]>("Image");
 
                     b.Property<bool>("IsExpert");
 

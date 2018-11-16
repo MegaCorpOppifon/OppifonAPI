@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DAL.Migrations
 {
-    public partial class NewInit : Migration
+    public partial class inint : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -12,9 +12,11 @@ namespace DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    Time = table.Column<DateTime>(nullable: false),
+                    OwnerId = table.Column<Guid>(nullable: false),
+                    StartTime = table.Column<DateTime>(nullable: false),
+                    EndTime = table.Column<DateTime>(nullable: false),
+                    Title = table.Column<string>(nullable: true),
                     Text = table.Column<string>(nullable: true),
-                    Duration = table.Column<TimeSpan>(nullable: false),
                     MaxParticipants = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -78,7 +80,7 @@ namespace DAL.Migrations
                     Birthday = table.Column<DateTime>(nullable: false),
                     Gender = table.Column<string>(nullable: true),
                     IsExpert = table.Column<bool>(nullable: false),
-                    AppointmentId = table.Column<Guid>(nullable: true),
+                    Image = table.Column<byte[]>(nullable: true),
                     Discriminator = table.Column<string>(nullable: false),
                     ExpertCategoryId = table.Column<Guid>(nullable: true),
                     Description = table.Column<string>(nullable: true)
@@ -91,13 +93,7 @@ namespace DAL.Migrations
                         column: x => x.ExpertCategoryId,
                         principalTable: "Categories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Users_Appointments_AppointmentId",
-                        column: x => x.AppointmentId,
-                        principalTable: "Appointments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -172,6 +168,7 @@ namespace DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Title = table.Column<string>(nullable: true),
                     Name = table.Column<string>(nullable: true),
                     ReviewText = table.Column<string>(nullable: true),
                     Rating = table.Column<int>(nullable: false),
@@ -184,6 +181,30 @@ namespace DAL.Migrations
                     table.ForeignKey(
                         name: "FK_Reviews_Users_ExpertId",
                         column: x => x.ExpertId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserFavorites",
+                columns: table => new
+                {
+                    UserId = table.Column<Guid>(nullable: false),
+                    ExpertId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserFavorites", x => new { x.UserId, x.ExpertId });
+                    table.ForeignKey(
+                        name: "FK_UserFavorites_Users_ExpertId",
+                        column: x => x.ExpertId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserFavorites_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -314,14 +335,14 @@ namespace DAL.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserFavorites_ExpertId",
+                table: "UserFavorites",
+                column: "ExpertId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_ExpertCategoryId",
                 table: "Users",
                 column: "ExpertCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_AppointmentId",
-                table: "Users",
-                column: "AppointmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserTags_TagId",
@@ -352,10 +373,16 @@ namespace DAL.Migrations
                 name: "Reviews");
 
             migrationBuilder.DropTable(
+                name: "UserFavorites");
+
+            migrationBuilder.DropTable(
                 name: "UserTags");
 
             migrationBuilder.DropTable(
                 name: "WorkDays");
+
+            migrationBuilder.DropTable(
+                name: "Appointments");
 
             migrationBuilder.DropTable(
                 name: "Tags");
@@ -368,9 +395,6 @@ namespace DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "Appointments");
         }
     }
 }

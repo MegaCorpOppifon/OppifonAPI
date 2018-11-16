@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using DAL.Models.ManyToMany;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata;
 
 namespace DAL.Models
 {
@@ -26,6 +27,6 @@ namespace DAL.Models
         public string Gender { get; set; }
         public Calendar Calendar { get; set; }
         public bool IsExpert { get; set; }
-        public string Image { get; set; }
+        public byte[] Image { get; set; }
     }
 }

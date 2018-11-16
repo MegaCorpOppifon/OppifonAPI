@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20181025145418_NewInit")]
-    partial class NewInit
+    [Migration("20181116103230_inin´t")]
+    partial class inint
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -26,13 +26,17 @@ namespace DAL.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<TimeSpan>("Duration");
+                    b.Property<DateTime>("EndTime");
 
                     b.Property<int>("MaxParticipants");
 
+                    b.Property<Guid>("OwnerId");
+
+                    b.Property<DateTime>("StartTime");
+
                     b.Property<string>("Text");
 
-                    b.Property<DateTime>("Time");
+                    b.Property<string>("Title");
 
                     b.HasKey("Id");
 
@@ -123,6 +127,19 @@ namespace DAL.Migrations
                     b.ToTable("MainFieldTags");
                 });
 
+            modelBuilder.Entity("DAL.Models.ManyToMany.UserFavorites", b =>
+                {
+                    b.Property<Guid>("UserId");
+
+                    b.Property<Guid>("ExpertId");
+
+                    b.HasKey("UserId", "ExpertId");
+
+                    b.HasIndex("ExpertId");
+
+                    b.ToTable("UserFavorites");
+                });
+
             modelBuilder.Entity("DAL.Models.ManyToMany.UserTag", b =>
                 {
                     b.Property<Guid>("UserId");
@@ -150,6 +167,8 @@ namespace DAL.Migrations
                     b.Property<int>("Rating");
 
                     b.Property<string>("ReviewText");
+
+                    b.Property<string>("Title");
 
                     b.HasKey("Id");
 
@@ -181,8 +200,6 @@ namespace DAL.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
-                    b.Property<Guid?>("AppointmentId");
-
                     b.Property<DateTime>("Birthday");
 
                     b.Property<string>("City");
@@ -199,6 +216,8 @@ namespace DAL.Migrations
                     b.Property<string>("FirstName");
 
                     b.Property<string>("Gender");
+
+                    b.Property<byte[]>("Image");
 
                     b.Property<bool>("IsExpert");
 
@@ -226,8 +245,6 @@ namespace DAL.Migrations
                         .IsRequired();
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
 
                     b.ToTable("Users");
 
@@ -287,7 +304,7 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.ManyToMany.CalendarAppointment", b =>
                 {
                     b.HasOne("DAL.Models.Appointment", "Appointment")
-                        .WithMany("Calendars")
+                        .WithMany("Participants")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -323,6 +340,19 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("DAL.Models.ManyToMany.UserFavorites", b =>
+                {
+                    b.HasOne("DAL.Models.Expert", "Expert")
+                        .WithMany("Subscribers")
+                        .HasForeignKey("ExpertId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("DAL.Models.User", "User")
+                        .WithMany("Favorites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("DAL.Models.ManyToMany.UserTag", b =>
                 {
                     b.HasOne("DAL.Models.Tag", "Tag")
@@ -350,13 +380,6 @@ namespace DAL.Migrations
                         .HasForeignKey("CategoryId");
                 });
 
-            modelBuilder.Entity("DAL.Models.User", b =>
-                {
-                    b.HasOne("DAL.Models.Appointment")
-                        .WithMany("Participants")
-                        .HasForeignKey("AppointmentId");
-                });
-
             modelBuilder.Entity("DAL.Models.WorkDay", b =>
                 {
                     b.HasOne("DAL.Models.Calendar")
@@ -367,8 +390,9 @@ namespace DAL.Migrations
             modelBuilder.Entity("DAL.Models.Expert", b =>
                 {
                     b.HasOne("DAL.Models.Category", "ExpertCategory")
-                        .WithMany()
-                        .HasForeignKey("ExpertCategoryId");
+                        .WithMany("Experts")
+                        .HasForeignKey("ExpertCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 #pragma warning restore 612, 618
         }

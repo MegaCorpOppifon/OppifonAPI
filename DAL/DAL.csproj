@@ -5,19 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20181018175937_NoManyToManyDbSets.cs" />
-    <Compile Remove="Migrations\20181020142303_OneToOneRelationShipUserAndCalendar.cs" />
-    <Compile Remove="Migrations\20181020142615_OneToOneRelationshipUserCalendar.cs" />
-    <Compile Remove="Migrations\20181020142833_OneToOneRelationshipUserCalendar.cs" />
-    <Compile Remove="Migrations\20181025155202_FixAppointmentOwner.cs" />
-    <Compile Remove="Migrations\20181025160624_FixAppointmentOwner.cs" />
-    <Compile Remove="Migrations\20181025161457_NoOwner.cs" />
-    <Compile Remove="Migrations\20181025162001_NoOwner.cs" />
-    <Compile Remove="Migrations\20181025162332_NoOwner.cs" />
-    <Compile Remove="Migrations\20181103184427_Favorites.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="FluentValidation" Version="8.0.100" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.1.0" />

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace OppifonAPI.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly IFactory _factory;
-        
+
 
         public AccountController(IFactory factory, UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
@@ -86,20 +87,20 @@ namespace OppifonAPI.Controllers
                         };
                         userCreationResult = await _userManager.CreateAsync(newUser, dtoUser.Password);
                     }
-                    
-                   
+
+
                     // Add user tag
                     if (userCreationResult.Succeeded)
                     {
                         var dbUser = unit.Users.GetByEmail(dtoUser.Email);
                         dbUser.InterestTags = new Collection<UserTag>();
 
-                        if(dtoUser.InterestTags == null)
+                        if (dtoUser.InterestTags == null)
                             dtoUser.InterestTags = new Collection<string>();
 
                         foreach (var interestTag in dtoUser.InterestTags)
                         {
-                            var tag = unit.Tags.GetTagByName(interestTag) ?? new Tag {Name = interestTag};
+                            var tag = unit.Tags.GetTagByName(interestTag) ?? new Tag { Name = interestTag };
 
                             var userTag = new UserTag
                             {
@@ -111,7 +112,7 @@ namespace OppifonAPI.Controllers
                         }
 
                         unit.Complete();
-                        
+
                         if (dtoUser.IsExpert)
                         {
                             var dbExpert = unit.Experts.GetByEmail(dtoUser.Email);
@@ -120,11 +121,11 @@ namespace OppifonAPI.Controllers
                             var category = unit.Categories.GetCategoryEagerByName(dtoUser.ExpertCategory);
 
                             if (dtoUser.ExpertTags == null)
-                                return BadRequest(new {message = "You must have some expert tags"});
+                                return BadRequest(new { message = "You must have some expert tags" });
 
                             foreach (var expertTag in dtoUser.ExpertTags)
                             {
-                                var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag {Name = expertTag};
+                                var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag { Name = expertTag };
 
                                 category.Tags.Add(tag);
 
@@ -144,7 +145,7 @@ namespace OppifonAPI.Controllers
 
                             foreach (var expertTag in dtoUser.MainFields)
                             {
-                                var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag {Name = expertTag};
+                                var tag = unit.Tags.GetTagByName(expertTag) ?? new Tag { Name = expertTag };
 
                                 category.Tags.Add(tag);
 
@@ -179,29 +180,24 @@ namespace OppifonAPI.Controllers
             }
         }
 
-        [HttpPost("AddProfilePicture")]
-        public async Task<IActionResult> AddProfilePicture([FromForm] string email, IFormFile image)
+        [HttpPost("AddProfilePicture/{id}")]
+        public async Task<IActionResult> AddProfilePicture([FromForm] DTOImage image, Guid id)
         {
             using (var unit = _factory.GetUOF())
             {
                 try
                 {
-                    // find calling user
-                    var currentAppuser = await _userManager.FindByEmailAsync(email);
-                    // Add Image
+                    // find user
+                    var currentAppuser = unit.Users.Get(id);
+                    // Add Image                    
 
-                    var path = Path.Combine(
-                    Directory.GetCurrentDirectory(), "wwwroot/ProfileImages", image.FileName);
-
-                    using (var fileStream = new FileStream(path, FileMode.Create))
+                    using (var fileStream = image.Image.OpenReadStream())
                     {
-                        await image.CopyToAsync(fileStream);
+                        currentAppuser.Image = new byte[fileStream.Length];
+                        fileStream.Read(currentAppuser.Image, 0, (int)fileStream.Length);
                     }
-
-                    currentAppuser.Image = _configuration.GetConnectionString("ImageFolder") + image.FileName;
-
                     unit.Complete();
-                    return Ok(currentAppuser);
+                    return Ok(image.Image.FileName);
                 }
                 catch (Exception e)
                 {
