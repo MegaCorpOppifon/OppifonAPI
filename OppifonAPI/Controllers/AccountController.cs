@@ -188,8 +188,8 @@ namespace OppifonAPI.Controllers
                 {
                     // find calling user
                     var currentAppuser = await _userManager.FindByEmailAsync(email);
+                    
                     // Add Image
-
                     var path = Path.Combine(
                     Directory.GetCurrentDirectory(), "wwwroot/ProfileImages", image.FileName);
 
