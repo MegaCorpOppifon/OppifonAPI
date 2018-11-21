@@ -27,6 +27,6 @@ namespace DAL.Models
         public string Gender { get; set; }
         public Calendar Calendar { get; set; }
         public bool IsExpert { get; set; }
-        public byte[] Image { get; set; }
+        public string Image { get; set; }
     }
 }

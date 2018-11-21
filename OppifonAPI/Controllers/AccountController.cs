@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using DAL.Factory;
+﻿using DAL.Factory;
 using DAL.Models;
 using DAL.Models.ManyToMany;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OppifonAPI.DTO;
 using OppifonAPI.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 using Calendar = DAL.Models.Calendar;
 
 namespace OppifonAPI.Controllers
@@ -183,26 +181,33 @@ namespace OppifonAPI.Controllers
         [HttpPost("AddProfilePicture/{id}")]
         public async Task<IActionResult> AddProfilePicture([FromForm] DTOImage image, Guid id)
         {
-            using (var unit = _factory.GetUOF())
-            {
-                try
-                {
-                    // find user
-                    var currentAppuser = unit.Users.Get(id);
-                    // Add Image                    
+            if (image.Image == null || image.Image.Length == 0)
+                return Content("file not selected");
 
-                    using (var fileStream = image.Image.OpenReadStream())
-                    {
-                        currentAppuser.Image = new byte[fileStream.Length];
-                        fileStream.Read(currentAppuser.Image, 0, (int)fileStream.Length);
-                    }
-                    unit.Complete();
-                    return Ok(image.Image.FileName);
-                }
-                catch (Exception e)
+            var path = Path.Combine(
+                        Directory.GetCurrentDirectory(), "wwwroot/profileImages",
+                        image.Image.FileName);
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await image.Image.CopyToAsync(stream);
+
+
+                using (var unit = _factory.GetUOF())
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    try
+                    {
+                        // find user
+                        var currentAppuser = unit.Users.Get(id);
+                        // Add Image                    
+                        currentAppuser.Image = $"{Directory.GetCurrentDirectory()}{@"\wwwroot\profileImages"}" + image.Image.FileName;
+                        unit.Complete();
+                        return Ok();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
                 }
             }
         }

@@ -21,6 +21,6 @@ namespace OppifonAPI.DTO
         public ICollection<string> ExpertTags { get; set; }
         public ICollection<string> MainFields { get; set; }
         public ICollection<DTOReview> Reviews { get; set; }
-        public byte[] Image { get; set; }
+        public string Image { get; set; }
     }
 }
