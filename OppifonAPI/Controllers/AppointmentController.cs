@@ -134,7 +134,10 @@ namespace OppifonAPI.Controllers
                     var dbAppointment = unit.Appointments.Get(appointmentId);
 
                     if (dbAppointment == null)
-                        return BadRequest(new { message = $"Appointment with id '{appointmentId}' did not exist" });
+                        return BadRequest(new
+                        {
+                            message = $"Appointment with id '{appointmentId}' did not exist"
+                        });
 
                     var claims = User.Claims;
                     var userId = claims.FirstOrDefault(x => x.Type == "id")?.Value;

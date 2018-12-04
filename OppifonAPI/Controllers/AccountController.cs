@@ -191,15 +191,17 @@ namespace OppifonAPI.Controllers
             {
                 await image.Image.CopyToAsync(stream);
 
-
                 using (var unit = _factory.GetUOF())
                 {
                     try
                     {
                         // find user
                         var currentAppuser = unit.Users.Get(id);
-                        // Add Image                    
-                        currentAppuser.Image = $"{Directory.GetCurrentDirectory()}{@"\wwwroot\profileImages"}" + image.Image.FileName;
+                        // Add Image
+                        // TODO change connectionstring for production
+                        string conString =   ConfigurationExtensions
+                                             .GetConnectionString(_configuration, "profileImages");
+                        currentAppuser.Image = conString + "/" + image.Image.FileName;
                         unit.Complete();
                         return Ok();
                     }
@@ -211,6 +213,7 @@ namespace OppifonAPI.Controllers
                 }
             }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody]DTOLoginUser dtoUser)
