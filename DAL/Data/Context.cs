@@ -55,7 +55,6 @@ namespace DAL.Data
             modelBuilder.Entity<UserFavorites>()
                 .HasKey(uf => new {uf.UserId, uf.ExpertId});
 
-                
             modelBuilder.Entity<UserFavorites>()
                 .HasOne(e => e.Expert)
                 .WithMany(e => e.Subscribers)
